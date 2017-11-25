@@ -184,4 +184,5 @@ void HAL_TIM_PWM_MspInit(TIM_HandleTypeDef *htim)
   HAL_NVIC_EnableIRQ(TIMx_DMA_IRQn);
 }
 
+
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

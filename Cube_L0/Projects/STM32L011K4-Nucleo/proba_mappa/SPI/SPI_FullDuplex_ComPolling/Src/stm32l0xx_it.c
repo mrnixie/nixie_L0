@@ -52,7 +52,6 @@
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 extern    TIM_HandleTypeDef    TimHandle;
-
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
 
@@ -155,20 +154,9 @@ void PendSV_Handler(void)
   */
 void SysTick_Handler(void)
 {
-	BSP_LED_Toggle(LED_GREEN);
+  HAL_IncTick();
 }
 
-/******************************************************************************/
-/*                 STM32L0xx Peripherals Interrupt Handlers                   */
-/*  Add here the Interrupt Handler for the used peripheral(s) (PPP), for the  */
-/*  available peripheral interrupt handler's name please refer to the startup */
-/*  file (startup_stm32l0xx.s).                                               */
-/******************************************************************************/
-/**
-* @brief  This function handles DMA interrupt request.
-* @param  None
-* @retval None
-*/
 void TIMx_DMA_IRQHandler(void)
 {
   HAL_DMA_IRQHandler(TimHandle.hdma[TIM_DMA_ID_CC3]);
@@ -182,4 +170,5 @@ void TIMx_IRQHandler(void)
 {
   HAL_TIM_IRQHandler(&TimHandle);
 }
+
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

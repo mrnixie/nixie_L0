@@ -51,19 +51,41 @@
 
 #define user_btn_Pin GPIO_PIN_12
 #define user_btn_GPIO_Port GPIOA
+/** @addtogroup STM32L0xx_HAL_Examples
+  * @{
+  */
+
+/** @addtogroup SPI_FullDuplex_ComPolling
+  * @{
+  */ 
+
+/* Private typedef -----------------------------------------------------------*/
+/* Private define ------------------------------------------------------------*/
+/* Private macro -------------------------------------------------------------*/
+/* Uncomment this line to use the board as master, if not it is used as slave */
+//#define MASTER_BOARD
 
 /* Private variables ---------------------------------------------------------*/
 /* SPI handler declaration */
+SPI_HandleTypeDef SpiHandle;
 TIM_HandleTypeDef  TimHandle;
 TIM_OC_InitTypeDef sConfig;
-SPI_HandleTypeDef SpiHandle;
-GPIO_InitTypeDef  GPIO_InitStruct;
 
-/* Buffer used for transmission*/
+/* Buffer used for transmission
+uint8_t nixie_bytes[8] = {0,0,0,0,0,0,0,0};
+
+uint16_t nixie_bytes[] = {
+	0,
+	0,
+	0,
+	0
+};*/
 uint32_t nixie_bytes[] = {
 		0,//0b00010001000100010001000100010010,
 		0,//0b00010001000100010001000100010010,
 };
+
+/* Buffer used for reception */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
@@ -86,7 +108,7 @@ void nixie2(uint8_t hour, uint8_t min, uint8_t sec){
 	nixie_bytes[1] = 0;
 	nixie_bytes[0] = 0;
 
-	 //if (hour < 100){
+	 if (hour < 100){
 		switch(hour / 10){
 			case 7: nixie_bytes[1] |= (1 << 22); break;
 			case 8: nixie_bytes[1] |= (1 << 23); break;
@@ -112,7 +134,7 @@ void nixie2(uint8_t hour, uint8_t min, uint8_t sec){
 			case 2: nixie_bytes[1] |= (1 << 20); break;
 			case 1: nixie_bytes[1] |= (1 << 21); break;
 		}
-	 //}
+	 }
 
 	 if (min < 100){
 		switch(min / 10){
@@ -178,6 +200,7 @@ void nixie2(uint8_t hour, uint8_t min, uint8_t sec){
 	}
 
 }
+
 void cs_1(){
 	  HAL_GPIO_WritePin(CS_GPIO_Port, CS_Pin,GPIO_PIN_SET);//CS/LE pi low
 	  HAL_Delay(1);
@@ -188,6 +211,7 @@ void cs_2(){
 	  HAL_Delay(1);
 	  HAL_GPIO_WritePin(blank_GPIO_Port, blank_Pin,GPIO_PIN_RESET);//CS/LE pi low
 }
+
 void rgb_sett(uint8_t red, uint8_t blue, uint8_t green){
 
 	/* Capture Compare buffer 6 = bit0, 12 = bit1*/
@@ -217,20 +241,25 @@ void rgb_sett(uint8_t red, uint8_t blue, uint8_t green){
 
 	};
 
-		HAL_TIM_PWM_Start_DMA(&TimHandle, TIM_CHANNEL_4, rgb_buf1, 145);
+		HAL_TIM_PWM_Start_DMA(&TimHandle, TIM_CHANNEL_4, rgb_buf1, 144);
 	//}
 		//while(HAL_TIM_PWM_Start_DMA(&TimHandle, TIM_CHANNEL_4, rgb_buf1, 24) != HAL_OK)
 	//HAL_Delay(1);
 	//HAL_TIM_PWM_Stop_DMA(&TimHandle, TIM_CHANNEL_4);
 }
+
 int main(void)
 {
+  GPIO_InitTypeDef  GPIO_InitStruct;
+
   HAL_Init();
   SystemClock_Config();
 
   BSP_LED_Init(LED3);
 
-  TimHandle.Instance = TIMx;
+
+
+  TimHandle.Instance = TIM2;
 
   TimHandle.Init.Period            = 18;
   TimHandle.Init.Prescaler         = 0;
@@ -253,10 +282,10 @@ int main(void)
     Error_Handler();
   }
 
-  /* Configure the SPI peripheral #######################################*/
+  /*##-1- Configure the SPI peripheral #######################################*/
   /* Set the SPI parameters */
   SpiHandle.Instance               = SPIx;
-  SpiHandle.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_128;
+  SpiHandle.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_32;
   SpiHandle.Init.Direction         = SPI_DIRECTION_2LINES;
   SpiHandle.Init.CLKPhase          = SPI_PHASE_2EDGE;
   SpiHandle.Init.CLKPolarity       = SPI_POLARITY_LOW;
@@ -303,46 +332,40 @@ int main(void)
   HAL_GPIO_WritePin(pwr_en_GPIO_Port, pwr_en_Pin,GPIO_PIN_SET);//DO HV for peropherals
 
   uint8_t pwr = 1;
-  uint8_t i = 0;
+  uint8_t i = 90;
+  nixie_bytes[0] = 1;
+
 	while (1)
 	{
+	  if (i < 115){
 		HAL_Delay(100);
-		BSP_LED_Toggle(LED_GREEN);
-		rgb_sett(6, 12,6);
+		nixie2(++i,i,i);
+	  }else{
+			rgb_sett(6, 12,6);
+		  i = 0;
+	  }
 
-		if (i < 115){
-			HAL_Delay(100);
-		}else{
-			i = 0;
-		}
+	  HAL_SPI_Transmit(&SpiHandle, (uint8_t*) &nixie_bytes[1], 2, 1000);
+	  cs_1();
+	  HAL_SPI_Transmit(&SpiHandle, (uint8_t*) &nixie_bytes[0], 2, 1000);
+	  cs_2();
 
-		nixie2(i++,100,100);
-
-		while(HAL_SPI_Transmit(&SpiHandle, (uint8_t*) &nixie_bytes[1], 2, 1000) != HAL_OK);
-		cs_1();
-		while(HAL_SPI_Transmit(&SpiHandle, (uint8_t*) &nixie_bytes[0], 2, 1000) != HAL_OK);
-		cs_2();
-
-		if((HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_12) == GPIO_PIN_RESET)&& (pwr == 0))
+	  if((HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_12) == GPIO_PIN_RESET)&& (pwr == 0))
 		{
 		  BSP_LED_On(LED_GREEN);
-		  pwr = 1;
-		  HAL_GPIO_WritePin(pwr_en_GPIO_Port, pwr_en_Pin,GPIO_PIN_SET);//DO HV for peropherals*/
+			pwr = 1;
+			HAL_GPIO_WritePin(pwr_en_GPIO_Port, pwr_en_Pin,GPIO_PIN_SET);//DO HV for peropherals
 		}else if((HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_12) == GPIO_PIN_RESET)&& (pwr == 1))
 		{
 			pwr = 0;
-			BSP_LED_Off(LED_GREEN);
+			  BSP_LED_Off(LED_GREEN);
 			HAL_GPIO_WritePin(pwr_en_GPIO_Port, pwr_en_Pin,GPIO_PIN_RESET);//DO NOT HV for peropheral
 		}
   }
 }
-
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-{
-	//HAL_TIM_PWM_Stop_DMA(&TimHandle, TIM_CHANNEL_4);
-	//HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7,0);
+void XferCpltCallback(){
+	HAL_TIM_PWM_Stop_DMA(&TimHandle, TIM_CHANNEL_4);
 }
-
 
 static void Error_Handler(void)
 {
@@ -360,26 +383,18 @@ static void Error_Handler(void)
   *            System Clock source            = HSI
   *            SYSCLK(Hz)                     = 32000000
   *            HCLK(Hz)                       = 32000000
-  *            AHB Prescaler                  = 1
+  *            AHB Prescaler                  = 2
   *            APB1 Prescaler                 = 1
-  *            APB2 Prescaler                 = 1
+  *            APB2 Prescaler                 = 16
   *            Flash Latency(WS)              = 0
   *            Main regulator output voltage  = Scale3 mode
   * @retval None
   */
 void SystemClock_Config(void)
 {
-
-  RCC_OscInitTypeDef RCC_OscInitStruct;
-  RCC_ClkInitTypeDef RCC_ClkInitStruct;
-  RCC_PeriphCLKInitTypeDef PeriphClkInit;
-
-    /**Configure the main internal regulator output voltage
-    */
-  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
-
-    /**Initializes the CPU, AHB and APB busses clocks
-    */
+  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+  
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI|RCC_OSCILLATORTYPE_LSE;
   RCC_OscInitStruct.LSEState = RCC_LSE_ON;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
@@ -388,47 +403,46 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
   RCC_OscInitStruct.PLL.PLLMUL = RCC_PLLMUL_4;
   RCC_OscInitStruct.PLL.PLLDIV = RCC_PLLDIV_2;
-  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+  if (HAL_RCC_OscConfig(&RCC_OscInitStruct)!= HAL_OK)
   {
-    Error_Handler();
+    /* Initialization Error */
+    while(1); 
   }
-
-    /**Initializes the CPU, AHB and APB busses clocks
-    */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+  
+  /* Select MSI as system clock source and configure the HCLK, PCLK1 and PCLK2 
+     clocks dividers */
+  RCC_ClkInitStruct.ClockType = (RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2);
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV2;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;  
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV16;
-
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_1) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0)!= HAL_OK)
   {
-    Error_Handler();
+    /* Initialization Error */
+    while(1); 
   }
+  /* Enable Power Control clock */
+  __HAL_RCC_PWR_CLK_ENABLE();
+  
+  /* The voltage scaling allows optimizing the power consumption when the device is 
+     clocked below the maximum system frequency, to update the voltage scaling value 
+     regarding system frequency refer to product datasheet.  */
+  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE3);
+  
+  /* Disable Power Control clock */
+  __HAL_RCC_PWR_CLK_DISABLE();
+  /**Configure the Systick interrupt time
+  */
+HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq()/1000);
 
-  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USART2|RCC_PERIPHCLK_RTC;
-  PeriphClkInit.Usart2ClockSelection = RCC_USART2CLKSOURCE_PCLK1;
-  PeriphClkInit.RTCClockSelection = RCC_RTCCLKSOURCE_LSE;
-  if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
-  {
-    Error_Handler();
-  }
+  /**Configure the Systick
+  */
+HAL_SYSTICK_CLKSourceConfig(SYSTICK_CLKSOURCE_HCLK);
 
-    /**Configure the Systick interrupt time
-    */
-  HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq()/1000);
-
-    /**Configure the Systick
-    */
-  HAL_SYSTICK_CLKSourceConfig(SYSTICK_CLKSOURCE_HCLK);
-
-  /* SysTick_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
+/* SysTick_IRQn interrupt configuration */
+HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
 }
-
-
-
+  
 #ifdef  USE_FULL_ASSERT
 /**
   * @brief  Reports the name of the source file and the source line number
