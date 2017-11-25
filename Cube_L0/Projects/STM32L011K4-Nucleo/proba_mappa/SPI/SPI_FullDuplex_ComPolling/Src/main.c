@@ -38,48 +38,24 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#define MASTER_BOARD
 
-#define pwr_en_Pin GPIO_PIN_3
-#define pwr_en_GPIO_Port GPIOA
-
-#define CS_Pin GPIO_PIN_4
-#define CS_GPIO_Port GPIOA
-
-#define blank_Pin GPIO_PIN_0
-#define blank_GPIO_Port GPIOB
-
-#define user_btn_Pin GPIO_PIN_12
-#define user_btn_GPIO_Port GPIOA
-/** @addtogroup STM32L0xx_HAL_Examples
-  * @{
-  */
-
-/** @addtogroup SPI_FullDuplex_ComPolling
-  * @{
-  */ 
-
-/* Private typedef -----------------------------------------------------------*/
-/* Private define ------------------------------------------------------------*/
-/* Private macro -------------------------------------------------------------*/
-/* Uncomment this line to use the board as master, if not it is used as slave */
-//#define MASTER_BOARD
-
-/* Private variables ---------------------------------------------------------*/
 /* SPI handler declaration */
 SPI_HandleTypeDef SpiHandle;
 TIM_HandleTypeDef  TimHandle;
 TIM_OC_InitTypeDef sConfig;
+TIM_IC_InitTypeDef sICConfig;
 
-/* Buffer used for transmission
-uint8_t nixie_bytes[8] = {0,0,0,0,0,0,0,0};
+uint32_t               uwIC2Value1 = 0;
+uint32_t               uwIC2Value2 = 0;
+uint32_t               uwDiffCapture = 0;
 
-uint16_t nixie_bytes[] = {
-	0,
-	0,
-	0,
-	0
-};*/
+/* Capture index */
+uint16_t               uhCaptureIndex = 0;
+
+/* Frequency Value */
+uint32_t               uwFrequency = 0;
+
+
 uint32_t nixie_bytes[] = {
 		0,//0b00010001000100010001000100010010,
 		0,//0b00010001000100010001000100010010,
@@ -101,9 +77,7 @@ void loading(uint8_t loading_var){
 		  //default: loading_var = 0; break;
 	  }
 }
-
 /* Private functions ---------------------------------------------------------*/
-
 void nixie2(uint8_t hour, uint8_t min, uint8_t sec){
 	nixie_bytes[1] = 0;
 	nixie_bytes[0] = 0;
@@ -200,7 +174,95 @@ void nixie2(uint8_t hour, uint8_t min, uint8_t sec){
 	}
 
 }
+void nixie(uint32_t num){
+	nixie_bytes[1] = 0;
+	nixie_bytes[0] = 0;
+/*
 
+		switch(num / 100){
+			case 7: nixie_bytes[1] |= (1 << 22); break;
+			case 8: nixie_bytes[1] |= (1 << 23); break;
+			case 9: nixie_bytes[1] |= (1 << 24); break;
+			case 0: nixie_bytes[1] |= (1 << 25); break;
+			case 6: nixie_bytes[1] |= (1 << 26); break;
+			case 5: nixie_bytes[1] |= (1 << 27); break;
+			case 4: nixie_bytes[1] |= (1 << 28); break;
+			case 3: nixie_bytes[1] |= (1 << 29); break;
+			case 2: nixie_bytes[1] |= (1 << 30); break;
+			case 1: nixie_bytes[1] |= (1 << 31); break;
+		}
+*/
+		switch(num / 10000){
+			case 6: nixie_bytes[1] |= (1 << 12); break;
+			case 7: nixie_bytes[1] |= (1 << 13); break;
+			case 8: nixie_bytes[1] |= (1 << 14); break;
+			case 9: nixie_bytes[1] |= (1 << 15); break;
+			case 0: nixie_bytes[1] |= (1 << 16); break;
+			case 5: nixie_bytes[1] |= (1 << 17); break;
+			case 4: nixie_bytes[1] |= (1 << 18); break;
+			case 3: nixie_bytes[1] |= (1 << 19); break;
+			case 2: nixie_bytes[1] |= (1 << 20); break;
+			case 1: nixie_bytes[1] |= (1 << 21); break;
+		}
+
+		switch(num / 1000){
+			case 0: nixie_bytes[1] |= (1 << 2); break;
+			case 9: nixie_bytes[1] |= (1 << 3); break;
+			case 8: nixie_bytes[1] |= (1 << 4); break;
+			case 7: nixie_bytes[1] |= (1 << 5); break;
+			case 6: nixie_bytes[1] |= (1 << 6); break;
+			case 1: nixie_bytes[1] |= (1 << 7); break;
+			case 5: nixie_bytes[1] |= (1 << 8); break;
+			case 2: nixie_bytes[1] |= (1 << 9); break;
+			case 3: nixie_bytes[1] |= (1 << 10); break;
+			case 4: nixie_bytes[1] |= (1 << 11); break;
+		}
+
+		switch(num / 100){
+			case 3: nixie_bytes[1] |= (1 << 0); break;
+			case 4: nixie_bytes[1] |= (1 << 1); break;
+
+			case 9: nixie_bytes[0] |= (1 << 24); break;
+			case 0: nixie_bytes[0] |= (1 << 25); break;
+			case 8: nixie_bytes[0] |= (1 << 26); break;
+			case 7: nixie_bytes[0] |= (1 << 27); break;
+			case 6: nixie_bytes[0] |= (1 << 28); break;
+			case 5: nixie_bytes[0] |= (1 << 29); break;
+			case 2: nixie_bytes[0] |= (1 << 30); break;
+			case 1: nixie_bytes[0] |= (1 << 31); break;
+		}
+
+		switch(num / 10){
+			case 5: nixie_bytes[0] |= (1 << 12); break;
+			case 3: nixie_bytes[0] |= (1 << 13); break;
+			//jobb N5: nixie_bytes[0] |= (1 << 14); break;
+			case 6: nixie_bytes[0] |= (1 << 15); break;
+			case 4: nixie_bytes[0] |= (1 << 16); break;
+			case 0: nixie_bytes[0] |= (1 << 17); break;
+			case 9: nixie_bytes[0] |= (1 << 18); break;
+			case 1: nixie_bytes[0] |= (1 << 19); break;
+			case 7: nixie_bytes[0] |= (1 << 20); break;
+			case 2: nixie_bytes[0] |= (1 << 21); break;
+			//bal pont N5: nixie_bytes[0] |= (1 << 22); break;
+			case 8: nixie_bytes[0] |= (1 << 23); break;
+		}
+		switch(num % 10){
+			//jobb N6: nixie_bytes[0] |= (1 << 0); break;
+			case 5: nixie_bytes[0] |= (1 << 1); break;
+			case 6: nixie_bytes[0] |= (1 << 2); break;
+			case 3: nixie_bytes[0] |= (1 << 3); break;
+			case 4: nixie_bytes[0] |= (1 << 4); break;
+			case 0: nixie_bytes[0] |= (1 << 5); break;
+			case 8: nixie_bytes[0] |= (1 << 6); break;
+			case 1: nixie_bytes[0] |= (1 << 7); break;
+			case 9: nixie_bytes[0] |= (1 << 8); break;
+			case 2: nixie_bytes[0] |= (1 << 9); break;
+			//bal pont N6: nixie_bytes[0] |= (1 << 10); break;
+			case 7: nixie_bytes[0] |= (1 << 11); break;
+		}
+
+
+}
 void cs_1(){
 	  HAL_GPIO_WritePin(CS_GPIO_Port, CS_Pin,GPIO_PIN_SET);//CS/LE pi low
 	  HAL_Delay(1);
@@ -211,7 +273,6 @@ void cs_2(){
 	  HAL_Delay(1);
 	  HAL_GPIO_WritePin(blank_GPIO_Port, blank_Pin,GPIO_PIN_RESET);//CS/LE pi low
 }
-
 void rgb_sett(uint8_t red, uint8_t blue, uint8_t green){
 
 	/* Capture Compare buffer 6 = bit0, 12 = bit1*/
@@ -256,31 +317,56 @@ int main(void)
   SystemClock_Config();
 
   BSP_LED_Init(LED3);
-
-
-
+/*
   TimHandle.Instance = TIM2;
-
   TimHandle.Init.Period            = 18;
   TimHandle.Init.Prescaler         = 0;
   TimHandle.Init.ClockDivision     = 0;
   TimHandle.Init.CounterMode       = TIM_COUNTERMODE_UP;
   if (HAL_TIM_PWM_Init(&TimHandle) != HAL_OK)
   {
-    /* Initialization Error */
+
     Error_Handler();
   }
 
-  /*##-2- Configure the PWM channel 3 ########################################*/
   sConfig.OCMode       = TIM_OCMODE_PWM1;
   sConfig.OCPolarity   = TIM_OCPOLARITY_HIGH;
   sConfig.Pulse        = 0;
   sConfig.OCFastMode = TIM_OCFAST_ENABLE;
   if (HAL_TIM_PWM_ConfigChannel(&TimHandle, &sConfig, TIM_CHANNEL_4) != HAL_OK)
   {
-    /* Configuration Error */
     Error_Handler();
   }
+*/
+  /* Set TIMx instance */
+    TimHandle.Instance = TIM2;
+    TimHandle.Init.Period            = 0xFFFF;
+    TimHandle.Init.Prescaler         = 0;
+    TimHandle.Init.ClockDivision     = 0;
+    TimHandle.Init.CounterMode       = TIM_COUNTERMODE_UP;
+    if(HAL_TIM_IC_Init(&TimHandle) != HAL_OK)
+    {
+      /* Initialization Error */
+      Error_Handler();
+    }
+
+    /* Configure the Input Capture of channel 1 */
+    sICConfig.ICPolarity  = TIM_ICPOLARITY_BOTHEDGE;
+    sICConfig.ICSelection = TIM_ICSELECTION_DIRECTTI;
+    sICConfig.ICPrescaler = TIM_ICPSC_DIV1;
+    sICConfig.ICFilter    = 0;
+    if(HAL_TIM_IC_ConfigChannel(&TimHandle, &sICConfig, TIM_CHANNEL_1) != HAL_OK)
+    {
+      /* Configuration Error */
+      Error_Handler();
+    }
+
+    /*##-3- Start the Input Capture in interrupt mode ##########################*/
+    if(HAL_TIM_IC_Start_IT(&TimHandle, TIM_CHANNEL_1) != HAL_OK)
+    {
+      /* Starting Error */
+      Error_Handler();
+    }
 
   /*##-1- Configure the SPI peripheral #######################################*/
   /* Set the SPI parameters */
@@ -329,22 +415,21 @@ int main(void)
   /* Enable GPIOA clock */
   __HAL_RCC_GPIOA_CLK_ENABLE();
 
-  HAL_GPIO_WritePin(pwr_en_GPIO_Port, pwr_en_Pin,GPIO_PIN_SET);//DO HV for peropherals
+  //HAL_GPIO_WritePin(pwr_en_GPIO_Port, pwr_en_Pin,GPIO_PIN_SET);//DO HV for peropherals
 
   uint8_t pwr = 1;
-  uint8_t i = 90;
-  nixie_bytes[0] = 1;
+  uint32_t i = 10;
+  //nixie_bytes[0] = 1;
 
 	while (1)
 	{
-	  if (i < 115){
-		HAL_Delay(100);
-		nixie2(++i,i,i);
+	  if (i < 0xFFFF){
+		HAL_Delay(50);
+		//nixie2(++i,i,i);
 	  }else{
-			rgb_sett(6, 12,6);
+			//rgb_sett(6, 12,6);
 		  i = 0;
 	  }
-
 	  HAL_SPI_Transmit(&SpiHandle, (uint8_t*) &nixie_bytes[1], 2, 1000);
 	  cs_1();
 	  HAL_SPI_Transmit(&SpiHandle, (uint8_t*) &nixie_bytes[0], 2, 1000);
@@ -363,6 +448,50 @@ int main(void)
 		}
   }
 }
+void HAL_TIM_TriggerCallback(TIM_HandleTypeDef *htim){
+
+	//BSP_LED_Toggle(LED_GREEN);
+}
+void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
+{
+	BSP_LED_Toggle(LED_GREEN);
+  if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1)
+  {
+    if(uhCaptureIndex == 0)
+    {
+      /* Get the 1st Input Capture value */
+      uwIC2Value1 = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
+      uhCaptureIndex = 1;
+    }
+    else if(uhCaptureIndex == 1)
+    {
+      /* Get the 2nd Input Capture value */
+      uwIC2Value2 = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
+
+      /* Capture computation */
+      if (uwIC2Value2 > uwIC2Value1)
+      {
+        uwDiffCapture = (uwIC2Value2 - uwIC2Value1);
+      }
+      else if (uwIC2Value2 < uwIC2Value1)
+      {
+        /* 0xFFFF is max TIM2_CCRx value */
+        uwDiffCapture = ((0xFFFF - uwIC2Value1) + uwIC2Value2) + 1;
+      }
+      else
+      {
+        /* If capture values are equal, we have reached the limit of frequency
+           measures */
+        Error_Handler();
+      }
+      /* Frequency computation: for this example TIMx (TIM2) is clocked by
+         APB1Clk */
+      uwFrequency = HAL_RCC_GetPCLK1Freq() / uwDiffCapture;
+      uhCaptureIndex = 0;
+    }
+  }
+}
+
 void XferCpltCallback(){
 	HAL_TIM_PWM_Stop_DMA(&TimHandle, TIM_CHANNEL_4);
 }

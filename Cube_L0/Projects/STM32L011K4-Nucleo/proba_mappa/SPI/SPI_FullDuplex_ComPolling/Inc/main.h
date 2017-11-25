@@ -39,7 +39,19 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32l0xx_nucleo_32.h"
+#define MASTER_BOARD
 
+#define pwr_en_Pin GPIO_PIN_3
+#define pwr_en_GPIO_Port GPIOA
+
+#define CS_Pin GPIO_PIN_4
+#define CS_GPIO_Port GPIOA
+
+#define blank_Pin GPIO_PIN_0
+#define blank_GPIO_Port GPIOB
+
+#define user_btn_Pin GPIO_PIN_12
+#define user_btn_GPIO_Port GPIOA
 
 
 /* Definition for TIMx clock resources */
@@ -50,8 +62,14 @@
 #define DMAx_CLK_ENABLE                  __HAL_RCC_DMA1_CLK_ENABLE
 
 /* Definition for TIMx Pins */
-#define TIMx_CHANNEL3_GPIO_CLK_ENABLE    __HAL_RCC_GPIOB_CLK_ENABLE
 
+/* Definition for TIMx Pins */
+#define TIMx_CHANNEL_GPIO_PORT()       __HAL_RCC_GPIOA_CLK_ENABLE()
+#define TIMx_GPIO_PORT                 GPIOA
+#define TIMx_GPIO_PIN_CHANNEL1         GPIO_PIN_15
+#define TIMx_GPIO_AF_TIMx              GPIO_AF5_TIM2
+
+#define TIMx_CHANNEL3_GPIO_CLK_ENABLE    __HAL_RCC_GPIOB_CLK_ENABLE
 #define TIMx_GPIO_CHANNEL3_PORT          GPIOB
 #define GPIO_PIN_CHANNEL3                GPIO_PIN_7
 
@@ -64,6 +82,8 @@
 /* Definition for ADCx's NVIC */
 #define TIMx_DMA_IRQn                    DMA1_Channel2_3_IRQn
 #define TIMx_DMA_IRQHandler              DMA1_Channel2_3_IRQnHandler
+#define TIMx_IRQn                      TIM2_IRQn
+#define TIMx_IRQHandler                TIM2_IRQHandler
 
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
