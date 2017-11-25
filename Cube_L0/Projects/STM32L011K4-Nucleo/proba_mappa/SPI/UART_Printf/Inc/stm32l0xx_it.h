@@ -1,6 +1,6 @@
 /**
   ******************************************************************************
-  * @file    GPIO/GPIO_IOToggle/Inc/stm32l0xx_it.h
+  * @file    UART/UART_Printf/Inc/stm32l0xx_it.h
   * @author  MCD Application Team
   * @brief   This file contains the headers of the interrupt handlers.
   ******************************************************************************
@@ -56,7 +56,6 @@ void SVC_Handler(void);
 void DebugMon_Handler(void);
 void PendSV_Handler(void);
 void SysTick_Handler(void);
-
 #ifdef __cplusplus
 }
 #endif

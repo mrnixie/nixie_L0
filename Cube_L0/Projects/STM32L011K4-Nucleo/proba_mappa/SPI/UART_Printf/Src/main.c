@@ -1,9 +1,9 @@
 /**
   ******************************************************************************
-  * @file    GPIO/GPIO_IOToggle/Src/main.c
+  * @file    UART/UART_Printf/Src/main.c
   * @author  MCD Application Team
-  * @brief   This example describes how to configure and use GPIOs through
-  *          the STM32L0xx HAL API.
+  * @brief   This example shows how to retarget the C library printf function
+  *          to the UART.
   ******************************************************************************
   * @attention
   *
@@ -41,7 +41,7 @@
   * @{
   */
 
-/** @addtogroup GPIO_IOToggle
+/** @addtogroup UART_Printf
   * @{
   */
 
@@ -49,11 +49,19 @@
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-static GPIO_InitTypeDef  GPIO_InitStruct;
+/* UART handler declaration */
+UART_HandleTypeDef UartHandle;
 
 /* Private function prototypes -----------------------------------------------*/
-static void SystemClock_Config(void);
-
+#ifdef __GNUC__
+/* With GCC, small printf (option LD Linker->Libraries->Small printf
+   set to 'Yes') calls __io_putchar() */
+#define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
+#else
+#define PUTCHAR_PROTOTYPE int fputc(int ch, FILE *f)
+#endif /* __GNUC__ */
+void SystemClock_Config(void);
+static void Error_Handler(void);
 
 /* Private functions ---------------------------------------------------------*/
 
@@ -64,9 +72,6 @@ static void SystemClock_Config(void);
   */
 int main(void)
 {
-  /* This sample code shows how to use GPIO HAL API to toggle LED3 IO
-    in an infinite loop. */
-
   /* STM32L0xx HAL library initialization:
        - Configure the Flash prefetch, Flash preread and Buffer caches
        - Systick timer is configured by default as source of time base, but user 
@@ -80,25 +85,55 @@ int main(void)
 
   /* Configure the system clock to 2 MHz */
   SystemClock_Config();
-  
-  /* -1- Enable GPIO Clock (to be able to program the configuration registers) */
-  LED3_GPIO_CLK_ENABLE();
 
-  /* -2- Configure IO in output push-pull mode to drive external LEDs */
-  GPIO_InitStruct.Mode  = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull  = GPIO_PULLUP;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  /* Initialize BSP Led for LED3 */
+  BSP_LED_Init(LED3);
 
-  GPIO_InitStruct.Pin = LED3_PIN;
-  HAL_GPIO_Init(LED3_GPIO_PORT, &GPIO_InitStruct);
+  /*##-1- Configure the UART peripheral ######################################*/
+  /* Put the USART peripheral in the Asynchronous mode (UART Mode) */
+  /* UART configured as follows:
+      - Word Length = 8 Bits (7 data bit + 1 parity bit) : 
+	                  BE CAREFUL : Program 7 data bits + 1 parity bit in PC HyperTerminal
+      - Stop Bit    = One Stop bit
+      - Parity      = ODD parity
+      - BaudRate    = 9600 baud
+      - Hardware flow control disabled (RTS and CTS signals) */
+  UartHandle.Instance        = USARTx;
 
-  /* -3- Toggle IO in an infinite loop */
+  UartHandle.Init.BaudRate   = 9600;
+  UartHandle.Init.WordLength = UART_WORDLENGTH_8B;
+  UartHandle.Init.StopBits   = UART_STOPBITS_1;
+  UartHandle.Init.Parity     = UART_PARITY_ODD;
+  UartHandle.Init.HwFlowCtl  = UART_HWCONTROL_NONE;
+  UartHandle.Init.Mode       = UART_MODE_TX_RX;
+  if (HAL_UART_Init(&UartHandle) != HAL_OK)
+  {
+    /* Initialization Error */
+    Error_Handler();
+  }
+
+  /* Output a message on Hyperterminal using printf function */
+  printf("\n\r UART Printf Example: retarget the C library printf function to the UART\n\r");
+  printf("** Test finished successfully. ** \n\r");
+
+  /* Infinite loop */
   while (1)
   {
-    HAL_GPIO_TogglePin(LED3_GPIO_PORT, LED3_PIN);
-    /* Insert delay 100 ms */
-    HAL_Delay(100);
   }
+}
+
+/**
+  * @brief  Retargets the C library printf function to the USART.
+  * @param  None
+  * @retval None
+  */
+PUTCHAR_PROTOTYPE
+{
+  /* Place your implementation of fputc here */
+  /* e.g. write a character to the USART2 and Loop until the end of transmission */
+  HAL_UART_Transmit(&UartHandle, (uint8_t *)&ch, 1, 0xFFFF);
+
+  return ch;
 }
 
 /**
@@ -157,9 +192,21 @@ void SystemClock_Config(void)
 }
 
 
+/**
+  * @brief  This function is executed in case of error occurrence.
+  * @param  None
+  * @retval None
+  */
+static void Error_Handler(void)
+{
+  /* Turn LED3 on */
+  BSP_LED_On(LED3);
+  while (1)
+  {
+  }
+}
 
 #ifdef  USE_FULL_ASSERT
-
 /**
   * @brief  Reports the name of the source file and the source line number
   *         where the assert_param error has occurred.

@@ -1,6 +1,6 @@
-/** 
+/**
   ******************************************************************************
-  * @file    GPIO/GPIO_IOToggle/Src/stm32l0xx_it.c
+  * @file    UART/UART_Printf/Src/stm32l0xx_it.c
   * @author  MCD Application Team
   * @brief   Main Interrupt Service Routines.
   *          This file provides template for all exceptions handler and
@@ -43,7 +43,7 @@
   * @{
   */
 
-/** @addtogroup GPIO_IOToggle
+/** @addtogroup UART_Printf
   * @{
   */
 
@@ -51,7 +51,6 @@
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
 
@@ -60,7 +59,7 @@
 /******************************************************************************/
 
 /**
-  * @brief  This function handles NMI exception.
+  * @brief   This function handles NMI exception.
   * @param  None
   * @retval None
   */
@@ -154,7 +153,7 @@ void PendSV_Handler(void)
   */
 void SysTick_Handler(void)
 {
-  HAL_IncTick();
+    HAL_IncTick();
 }
 
 /******************************************************************************/
@@ -163,7 +162,6 @@ void SysTick_Handler(void)
 /*  available peripheral interrupt handler's name please refer to the startup */
 /*  file (startup_stm32l0xx.s).                                               */
 /******************************************************************************/
-
 /**
   * @brief  This function handles PPP interrupt request.
   * @param  None
