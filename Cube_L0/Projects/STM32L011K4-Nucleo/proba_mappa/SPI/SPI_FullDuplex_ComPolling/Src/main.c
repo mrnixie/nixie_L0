@@ -42,6 +42,7 @@
 /* SPI handler declaration */
 SPI_HandleTypeDef SpiHandle;
 TIM_HandleTypeDef  TimHandle;
+TIM_HandleTypeDef  TimHandle21;
 TIM_OC_InitTypeDef sConfig;
 TIM_IC_InitTypeDef sICConfig;
 
@@ -339,12 +340,12 @@ int main(void)
   }
 */
   /* Set TIMx instance */
-    TimHandle.Instance = TIM2;
-    TimHandle.Init.Period            = 0xFFFF;
-    TimHandle.Init.Prescaler         = 0;
-    TimHandle.Init.ClockDivision     = 0;
-    TimHandle.Init.CounterMode       = TIM_COUNTERMODE_UP;
-    if(HAL_TIM_IC_Init(&TimHandle) != HAL_OK)
+    TimHandle21.Instance = TIM21;
+    TimHandle21.Init.Period            = 0xFFFF;
+    TimHandle21.Init.Prescaler         = 0;
+    TimHandle21.Init.ClockDivision     = 0;
+    TimHandle21.Init.CounterMode       = TIM_COUNTERMODE_UP;
+    if(HAL_TIM_IC_Init(&TimHandle21) != HAL_OK)
     {
       /* Initialization Error */
       Error_Handler();
@@ -355,14 +356,14 @@ int main(void)
     sICConfig.ICSelection = TIM_ICSELECTION_DIRECTTI;
     sICConfig.ICPrescaler = TIM_ICPSC_DIV1;
     sICConfig.ICFilter    = 0;
-    if(HAL_TIM_IC_ConfigChannel(&TimHandle, &sICConfig, TIM_CHANNEL_1) != HAL_OK)
+    if(HAL_TIM_IC_ConfigChannel(&TimHandle21, &sICConfig, TIM_CHANNEL_1) != HAL_OK)
     {
       /* Configuration Error */
       Error_Handler();
     }
 
     /*##-3- Start the Input Capture in interrupt mode ##########################*/
-    if(HAL_TIM_IC_Start_IT(&TimHandle, TIM_CHANNEL_1) != HAL_OK)
+    if(HAL_TIM_IC_Start_IT(&TimHandle21, TIM_CHANNEL_1) != HAL_OK)
     {
       /* Starting Error */
       Error_Handler();
@@ -423,9 +424,9 @@ int main(void)
 
 	while (1)
 	{
-	  if (i < 0xFFFF){
-		HAL_Delay(50);
-		//nixie2(++i,i,i);
+	  if (i < 114){
+		HAL_Delay(100);
+		nixie2(++i,i,i);
 	  }else{
 			//rgb_sett(6, 12,6);
 		  i = 0;
@@ -448,12 +449,14 @@ int main(void)
 		}
   }
 }
-void HAL_TIM_TriggerCallback(TIM_HandleTypeDef *htim){
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 
 	//BSP_LED_Toggle(LED_GREEN);
 }
 void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 {
+
+	HAL_GPIO_WritePin(pwr_en_GPIO_Port, pwr_en_Pin,GPIO_PIN_SET);
 	BSP_LED_Toggle(LED_GREEN);
   if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1)
   {

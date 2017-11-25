@@ -52,7 +52,7 @@
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 extern    TIM_HandleTypeDef    TimHandle;
-extern    TIM_HandleTypeDef    TimHandle2;
+extern    TIM_HandleTypeDef    TimHandle21;
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
 
@@ -167,9 +167,13 @@ void TIMx_DMA_IRQHandler(void)
   * @param  None
   * @retval None
   */
-void TIMx_IRQHandler(void)
+void TIM2_IRQHandler(void)
 {
   HAL_TIM_IRQHandler(&TimHandle);
+}
+void TIM21_IRQHandler(void)
+{
+  HAL_TIM_IRQHandler(&TimHandle21);
 }
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

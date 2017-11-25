@@ -120,25 +120,25 @@ void HAL_TIM_IC_MspInit(TIM_HandleTypeDef *htim)
 
   /*##-1- Enable peripherals and GPIO Clocks #################################*/
   /* TIMx Peripheral clock enable */
-  TIMx_CLK_ENABLE();
+  __HAL_RCC_TIM21_CLK_ENABLE();
 
   /* Enable GPIO channels Clock */
-  TIMx_CHANNEL_GPIO_PORT();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /* Configure  (TIMx_Channel) in Alternate function, push-pull and high speed */
-  GPIO_InitStruct.Pin = TIMx_GPIO_PIN_CHANNEL1;
+  GPIO_InitStruct.Pin = GPIO_PIN_5;
   GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
   GPIO_InitStruct.Alternate = TIMx_GPIO_AF_TIMx;
-  HAL_GPIO_Init(TIMx_GPIO_PORT, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*##-2- Configure the NVIC for TIMx #########################################*/
 
-  HAL_NVIC_SetPriority(TIMx_IRQn, 0, 1);
+  HAL_NVIC_SetPriority(TIM21_IRQn, 0, 1);
 
   /* Enable the TIMx global Interrupt */
-  HAL_NVIC_EnableIRQ(TIMx_IRQn);
+  HAL_NVIC_EnableIRQ(TIM21_IRQn);
 }
 /**
   * @brief TIM MSP Initialization

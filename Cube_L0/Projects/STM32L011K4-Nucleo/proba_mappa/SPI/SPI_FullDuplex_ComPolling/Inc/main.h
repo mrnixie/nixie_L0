@@ -64,10 +64,10 @@
 /* Definition for TIMx Pins */
 
 /* Definition for TIMx Pins */
-#define TIMx_CHANNEL_GPIO_PORT()       __HAL_RCC_GPIOA_CLK_ENABLE()
-#define TIMx_GPIO_PORT                 GPIOA
-#define TIMx_GPIO_PIN_CHANNEL1         GPIO_PIN_15
-#define TIMx_GPIO_AF_TIMx              GPIO_AF5_TIM2
+#define TIMx_CHANNEL_GPIO_PORT()       __HAL_RCC_GPIOB_CLK_ENABLE()
+#define TIMx_GPIO_PORT                 GPIOB
+#define TIMx_GPIO_PIN_CHANNEL1         GPIO_PIN_5
+#define TIMx_GPIO_AF_TIMx              GPIO_AF5_TIM21
 
 #define TIMx_CHANNEL3_GPIO_CLK_ENABLE    __HAL_RCC_GPIOB_CLK_ENABLE
 #define TIMx_GPIO_CHANNEL3_PORT          GPIOB
