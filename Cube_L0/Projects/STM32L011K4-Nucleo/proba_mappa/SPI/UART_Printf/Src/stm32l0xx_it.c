@@ -46,7 +46,7 @@
 /** @addtogroup UART_Printf
   * @{
   */
-
+extern    TIM_HandleTypeDef    TimHandle;
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
@@ -169,15 +169,9 @@ void SysTick_Handler(void)
   */
 /*void PPP_IRQHandler(void)
 {
-}*/
-
-
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */
+}*/void TIMx_IRQHandler(void)
+{
+	HAL_TIM_IRQHandler(&TimHandle);
+}
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

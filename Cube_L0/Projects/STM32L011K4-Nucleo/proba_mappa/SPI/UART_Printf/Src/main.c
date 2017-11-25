@@ -51,6 +51,10 @@
 /* Private variables ---------------------------------------------------------*/
 /* UART handler declaration */
 UART_HandleTypeDef UartHandle;
+TIM_HandleTypeDef  TimHandle;
+void kakis(int kssk){
+	;
+}
 
 /* Private function prototypes -----------------------------------------------*/
 #ifdef __GNUC__
@@ -62,7 +66,7 @@ UART_HandleTypeDef UartHandle;
 #endif /* __GNUC__ */
 void SystemClock_Config(void);
 static void Error_Handler(void);
-
+int kaki=4;
 /* Private functions ---------------------------------------------------------*/
 
 /**

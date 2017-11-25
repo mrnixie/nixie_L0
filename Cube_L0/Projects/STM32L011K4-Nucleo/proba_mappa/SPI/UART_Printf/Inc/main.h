@@ -42,6 +42,23 @@
 #include "stm32l0xx_nucleo_32.h"
 #include "stdio.h"
 
+/* Definition for TIMx clock resources */
+#define TIMx                             TIM2
+
+/* Definition for TIMx clock resources */
+#define TIMx_CLK_ENABLE                  __HAL_RCC_TIM2_CLK_ENABLE
+#define DMAx_CLK_ENABLE                  __HAL_RCC_DMA1_CLK_ENABLE
+
+/* Definition for TIMx Pins */
+
+/* Definition for TIMx Pins */
+#define TIMx_CHANNEL_GPIO_PORT()       __HAL_RCC_GPIOA_CLK_ENABLE()
+#define TIMx_GPIO_PORT                 GPIOA
+#define TIMx_GPIO_PIN_CHANNEL1         GPIO_PIN_15
+#define TIMx_GPIO_AF_TIMx              GPIO_AF5_TIM2
+
+#define TIMx_IRQn                      TIM2_IRQn
+#define TIMx_IRQHandler                TIM2_IRQHandler
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
 /* User can use this section to tailor USARTx/UARTx instance used and associated

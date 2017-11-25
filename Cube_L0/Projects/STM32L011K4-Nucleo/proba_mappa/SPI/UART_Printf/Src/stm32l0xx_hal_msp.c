@@ -45,6 +45,32 @@
   * @{
   */
 
+void HAL_TIM_IC_MspInit(TIM_HandleTypeDef *htim)
+{
+  GPIO_InitTypeDef   GPIO_InitStruct;
+
+  /*##-1- Enable peripherals and GPIO Clocks #################################*/
+  /* TIMx Peripheral clock enable */
+  TIMx_CLK_ENABLE();
+
+  /* Enable GPIO channels Clock */
+  TIMx_CHANNEL_GPIO_PORT();
+
+  /* Configure  (TIMx_Channel) in Alternate function, push-pull and high speed */
+  GPIO_InitStruct.Pin = TIMx_GPIO_PIN_CHANNEL1;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  GPIO_InitStruct.Alternate = TIMx_GPIO_AF_TIMx;
+  HAL_GPIO_Init(TIMx_GPIO_PORT, &GPIO_InitStruct);
+
+  /*##-2- Configure the NVIC for TIMx #########################################*/
+
+  HAL_NVIC_SetPriority(TIMx_IRQn, 0, 1);
+
+  /* Enable the TIMx global Interrupt */
+  HAL_NVIC_EnableIRQ(TIMx_IRQn);
+}
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
