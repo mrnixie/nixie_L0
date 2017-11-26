@@ -428,32 +428,51 @@ int main(void)
 
   uint8_t pwr = 1;
   uint32_t i = 0;
+  uint8_t ii = 0;
   //nixie_bytes[0] = 1;
 
 	while (1)
 	{
 
-	  if (i < 15){
-		HAL_Delay(1000);
-
-	  }else{
-		i = 0;
-	  }
-	  i++;
-	  //nixie(200008);
-	  nixie(ir_signal);
-	  //i++;
+		/*if(ir_signal == 299){
+			  ir_signal = 0;
+			  ii++;
+			  if(ii > 2){
+				  HAL_GPIO_TogglePin(pwr_en_GPIO_Port, pwr_en_Pin);//DO HV for peropherals
+				  ii = 0;
+			  }
+		}
+*/
+		HAL_Delay(100);
+		if(ir_signal > 0){
+			nixie(ir_signal);
+			ir_signal = 0;
+		}
+	  //BSP_LED_Toggle(LED_GREEN);
 	  HAL_SPI_Transmit(&SpiHandle, (uint8_t*) &nixie_bytes[1], 2, 1000);
 	  cs_1();
 	  HAL_SPI_Transmit(&SpiHandle, (uint8_t*) &nixie_bytes[0], 2, 1000);
 	  cs_2();
-
+/*
+	  if(belepesek == 12){
+		  belepesek = 0;
+			if((tmp_arr[i] - tmp_arr[i - 1]) > 30){
+				ir_signal |= (1 << i);
+				BSP_LED_Toggle(LED3);
+			}
+	  }
+*/
 	  if((HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_12) == GPIO_PIN_RESET))
 		{
+		  ir_signal = 0;
+		  belepesek = 0;
 		  i++;
-//			BSP_LED_On(LED_GREEN);
-//			pwr = 1;
-//			HAL_GPIO_WritePin(pwr_en_GPIO_Port, pwr_en_Pin,GPIO_PIN_SET);//DO HV for peropherals
+			if((tmp_arr[i] - tmp_arr[i - 1]) > 30){
+				ir_signal |= (1 << i);
+				BSP_LED_Toggle(LED3);
+
+			}
+			//nixie(tmp_arr[i] - tmp_arr[i - 1]);
 		}
   }
 }
@@ -463,40 +482,25 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 }
 void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 {
-
-	BSP_LED_Toggle(LED_GREEN);
-
-
 	tmp_arr[belepesek] = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
-	if((tmp_arr[belepesek +1] - tmp_arr[belepesek]) > 30){
-		ir_signal |= (1 << belepesek);
-	}
-	//HAL_GPIO_WritePin(pwr_en_GPIO_Port, pwr_en_Pin,GPIO_PIN_SET);
- /*   if(uhCaptureIndex == 0)
-    {
-		uwIC2Value1 = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
-		uhCaptureIndex = 1;
-		nixie(uwIC2Value1);
-    }
-    else if(uhCaptureIndex == 1)
-    {
-      uwIC2Value2 = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
-      uwFrequency = uwIC2Value2 - uwIC2Value1;
-      uhCaptureIndex = 0;
-		if ((uwFrequency > 1000) && (belepesek >= 1 )) {
+	if(belepesek > 0){
+		if((tmp_arr[belepesek] - tmp_arr[belepesek - 1]) > 30){
 			ir_signal |= (1 << belepesek);
+			BSP_LED_Toggle(LED3);
 
 		}
-    }
-*/
-    if(belepesek < 13){
-    	belepesek++;
-    }else{
-    	belepesek = 0;
-    	ir_signal = 0;
-    }
-//    nixie(ir_signal);
-
+	}
+	if(belepesek < 12){
+		belepesek++;
+	}else{
+		belepesek = 0;
+		//nixie(ir_signal);
+		//ir_signal = 0;
+		for(int j = 0; j < 20; j++){
+			tmp_arr[j] = 0;
+			BSP_LED_Toggle(LED_GREEN);
+		}
+	}
 }
 
 void XferCpltCallback(){
