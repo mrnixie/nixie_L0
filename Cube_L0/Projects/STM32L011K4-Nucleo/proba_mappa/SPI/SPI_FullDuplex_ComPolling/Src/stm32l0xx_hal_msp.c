@@ -170,7 +170,7 @@ void HAL_TIM_PWM_MspInit(TIM_HandleTypeDef *htim)
   GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
   GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-  GPIO_InitStruct.Alternate = GPIO_AF_TIMx;
+  GPIO_InitStruct.Alternate = GPIO_AF5_TIM2;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
 
@@ -179,8 +179,8 @@ void HAL_TIM_PWM_MspInit(TIM_HandleTypeDef *htim)
   hdma_tim.Init.Direction = DMA_MEMORY_TO_PERIPH;
   hdma_tim.Init.PeriphInc = DMA_PINC_DISABLE;
   hdma_tim.Init.MemInc = DMA_MINC_ENABLE;
-  hdma_tim.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD ;
-  hdma_tim.Init.MemDataAlignment = DMA_PDATAALIGN_WORD ;
+  hdma_tim.Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD ;
+  hdma_tim.Init.MemDataAlignment = DMA_PDATAALIGN_BYTE ;
   hdma_tim.Init.Mode = DMA_NORMAL;
   hdma_tim.Init.Priority = DMA_PRIORITY_HIGH;
 

@@ -277,29 +277,29 @@ void cs_2(){
 void rgb_sett(uint8_t red, uint8_t blue, uint8_t green){
 
 	/* Capture Compare buffer 6 = bit0, 12 = bit1*/
-	uint8_t rgb_buf1[144] = {red, 6, 6, 6, 6, 6, 6, 6,//GREEN
-							blue, 6, 6, 6, 6, 6, 6, 6,//RED
-							green, 6, 6, 6, 6, 6, 6, 6,//BLUE
+	uint16_t rgb_buf1[144] = {12, 6, 6, 6, 6, 6, 6, 6,//GREEN
+							12, 6, 6, 6, 6, 6, 6, 6,//RED
+							12, 6, 6, 6, 6, 6, 6, 6,//BLUE
 
-							red, 6, 6, 6, 6, 6, 6, 6,//GREEN
-							blue, 6, 6, 6, 6, 6, 6, 6,//RED
-							green, 6, 6, 6, 6, 6, 6, 6,//BLUE
+							12, 6, 6, 6, 6, 6, 6, 6,//GREEN
+							6, 6, 6, 6, 6, 6, 6, 6,//RED
+							6, 6, 6, 6, 6, 6, 6, 6,//BLUE
 
-							red, 6, 6, 6, 6, 6, 6, 6,//GREEN
-							blue, 6, 6, 6, 6, 6, 6, 6,//RED
-							green, 6, 6, 6, 6, 6, 6, 6,//BLUE
+							12, 6, 6, 6, 6, 6, 6, 6,//GREEN
+							12, 6, 6, 6, 6, 6, 6, 6,//RED
+							6, 6, 6, 6, 6, 6, 6, 6,//BLUE
 
-							red, 6, 6, 6, 6, 6, 6, 6,//GREEN
-							blue, 6, 6, 6, 6, 6, 6, 6,//RED
-							green, 6, 6, 6, 6, 6, 6, 6,//BLUE
+							6, 6, 6, 6, 6, 6, 6, 6,//GREEN
+							6, 6, 6, 6, 6, 6, 6, 6,//RED
+							12, 6, 6, 6, 6, 6, 6, 6,//BLUE
 
-							red, 6, 6, 6, 6, 6, 6, 6,//GREEN
-							blue, 6, 6, 6, 6, 6, 6, 6,//RED
-							green, 6, 6, 6, 6, 6, 6, 6,//BLUE
+							12, 6, 6, 6, 6, 6, 6, 6,//GREEN
+							6, 6, 6, 6, 6, 6, 6, 6,//RED
+							12, 6, 6, 6, 6, 6, 6, 6,//BLUE
 
-							red, 6, 6, 6, 6, 6, 6, 6,//GREEN
-							blue, 6, 6, 6, 6, 6, 6, 6,//RED
-							green, 6, 6, 6, 6, 6, 6, 6,//BLUE
+							6, 6, 6, 6, 6, 6, 6, 6,//GREEN
+							6, 6, 6, 6, 6, 6, 6, 6,//RED
+							12, 6, 6, 6, 6, 6, 6, 6,//BLUE
 
 	};
 
@@ -318,7 +318,7 @@ int main(void)
   SystemClock_Config();
 
   BSP_LED_Init(LED3);
-/*
+
   TimHandle.Instance = TIM2;
   TimHandle.Init.Period            = 18;
   TimHandle.Init.Prescaler         = 0;
@@ -338,7 +338,7 @@ int main(void)
   {
     Error_Handler();
   }
-*/
+
   /* Set TIMx instance */
     TimHandle21.Instance = TIM21;
     TimHandle21.Init.Period            = 0xFFFF;
@@ -424,13 +424,14 @@ int main(void)
 
 	while (1)
 	{
+
 	  if (i < 114){
 		HAL_Delay(100);
 		nixie2(++i,i,i);
 	  }else{
-			//rgb_sett(6, 12,6);
-		  i = 0;
+		i = 0;
 	  }
+		rgb_sett(6, 12,6);
 	  HAL_SPI_Transmit(&SpiHandle, (uint8_t*) &nixie_bytes[1], 2, 1000);
 	  cs_1();
 	  HAL_SPI_Transmit(&SpiHandle, (uint8_t*) &nixie_bytes[0], 2, 1000);
@@ -451,13 +452,13 @@ int main(void)
 }
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 
-	//BSP_LED_Toggle(LED_GREEN);
+	BSP_LED_Toggle(LED_GREEN);
 }
 void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 {
 
 	HAL_GPIO_WritePin(pwr_en_GPIO_Port, pwr_en_Pin,GPIO_PIN_SET);
-	BSP_LED_Toggle(LED_GREEN);
+
   if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1)
   {
     if(uhCaptureIndex == 0)
@@ -496,6 +497,7 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 }
 
 void XferCpltCallback(){
+	BSP_LED_Toggle(LED_GREEN);
 	HAL_TIM_PWM_Stop_DMA(&TimHandle, TIM_CHANNEL_4);
 }
 
