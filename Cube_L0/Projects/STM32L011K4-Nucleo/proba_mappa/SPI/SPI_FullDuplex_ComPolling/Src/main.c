@@ -70,6 +70,7 @@ static void Error_Handler(void);
 
 void loading(uint8_t loading_var){
 	nixie_bytes[0] = 0;
+	nixie_bytes[1] = 0;
 	  switch(loading_var % 4){
 		  case 0: nixie_bytes[0] |= (1 << 22); break;
 		  case 1: nixie_bytes[0] |= (1 << 14); break;
@@ -311,8 +312,8 @@ void rgb_sett(uint8_t red, uint8_t blue, uint8_t green){
 		HAL_TIM_PWM_Start_DMA(&TimHandle, TIM_CHANNEL_4, rgb_buf1, 144);
 	//}
 		//while(HAL_TIM_PWM_Start_DMA(&TimHandle, TIM_CHANNEL_4, rgb_buf1, 24) != HAL_OK)
-	//HAL_Delay(1);
-	//HAL_TIM_PWM_Stop_DMA(&TimHandle, TIM_CHANNEL_4);
+	HAL_Delay(1);
+	HAL_TIM_PWM_Stop_DMA(&TimHandle, TIM_CHANNEL_4);
 }
 
 uint32_t ir_signal;
@@ -424,7 +425,7 @@ int main(void)
   /* Enable GPIOA clock */
   __HAL_RCC_GPIOA_CLK_ENABLE();
 
-  HAL_GPIO_WritePin(pwr_en_GPIO_Port, pwr_en_Pin,GPIO_PIN_SET);//DO HV for peropherals
+  //HAL_GPIO_WritePin(pwr_en_GPIO_Port, pwr_en_Pin,GPIO_PIN_SET);//DO HV for peropherals
 
   uint8_t pwr = 1;
   uint32_t i = 0;
@@ -433,22 +434,15 @@ int main(void)
 
 	while (1)
 	{
-
-		/*if(ir_signal == 299){
-			  ir_signal = 0;
-			  ii++;
-			  if(ii > 2){
-				  HAL_GPIO_TogglePin(pwr_en_GPIO_Port, pwr_en_Pin);//DO HV for peropherals
-				  ii = 0;
-			  }
-		}
-*/
+		rgb_sett(12,0,0);
 		HAL_Delay(100);
+		  BSP_LED_Toggle(LED_GREEN);
+
 		if(ir_signal > 0){
 			nixie(ir_signal);
 			ir_signal = 0;
-		}
-	  //BSP_LED_Toggle(LED_GREEN);
+		}else loading(i++);
+
 	  HAL_SPI_Transmit(&SpiHandle, (uint8_t*) &nixie_bytes[1], 2, 1000);
 	  cs_1();
 	  HAL_SPI_Transmit(&SpiHandle, (uint8_t*) &nixie_bytes[0], 2, 1000);
@@ -472,13 +466,12 @@ int main(void)
 				BSP_LED_Toggle(LED3);
 
 			}
-			//nixie(tmp_arr[i] - tmp_arr[i - 1]);
 		}
   }
 }
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 
-	BSP_LED_Toggle(LED_GREEN);
+	//BSP_LED_Toggle(LED_GREEN);
 }
 void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 {
@@ -494,8 +487,6 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 		belepesek++;
 	}else{
 		belepesek = 0;
-		//nixie(ir_signal);
-		//ir_signal = 0;
 		for(int j = 0; j < 20; j++){
 			tmp_arr[j] = 0;
 			BSP_LED_Toggle(LED_GREEN);
@@ -503,10 +494,10 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 	}
 }
 
-void XferCpltCallback(){
+/*void XferCpltCallback(){
 	BSP_LED_Toggle(LED_GREEN);
 	HAL_TIM_PWM_Stop_DMA(&TimHandle, TIM_CHANNEL_4);
-}
+}*/
 
 static void Error_Handler(void)
 {
