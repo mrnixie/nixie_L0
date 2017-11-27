@@ -149,10 +149,12 @@ void HAL_TIM_IC_MspInit(TIM_HandleTypeDef *htim)
   * @param htim: TIM handle pointer
   * @retval None
   */
+extern void XferCpltCallback();
+static DMA_HandleTypeDef  hdma_tim;
 void HAL_TIM_PWM_MspInit(TIM_HandleTypeDef *htim)
 {
   GPIO_InitTypeDef   GPIO_InitStruct;
-  static DMA_HandleTypeDef  hdma_tim;
+
 
   /*##-1- Enable peripherals and GPIO Clocks #################################*/
   /* TIMx clock enable */
@@ -175,17 +177,19 @@ void HAL_TIM_PWM_MspInit(TIM_HandleTypeDef *htim)
 
 
   /* Set the parameters to be configured */
-  hdma_tim.Init.Request  = TIMx_CC3_DMA_REQUEST;
+  hdma_tim.Init.Request  = DMA_REQUEST_8;
   hdma_tim.Init.Direction = DMA_MEMORY_TO_PERIPH;
   hdma_tim.Init.PeriphInc = DMA_PINC_DISABLE;
   hdma_tim.Init.MemInc = DMA_MINC_ENABLE;
-  hdma_tim.Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD ;
-  hdma_tim.Init.MemDataAlignment = DMA_PDATAALIGN_BYTE ;
+  hdma_tim.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD ;
+  hdma_tim.Init.MemDataAlignment = DMA_MDATAALIGN_WORD ;
   hdma_tim.Init.Mode = DMA_NORMAL;
   hdma_tim.Init.Priority = DMA_PRIORITY_HIGH;
 
   /* Set hdma_tim instance */
-  hdma_tim.Instance = TIMx_CC3_DMA_INST;
+  hdma_tim.Instance = DMA1_Channel4;
+
+  hdma_tim.XferCpltCallback = XferCpltCallback;
 
   /* Link hdma_tim to hdma[TIM_DMA_ID_CC4] (channel3) */
   __HAL_LINKDMA(htim, hdma[TIM_DMA_ID_CC4], hdma_tim);

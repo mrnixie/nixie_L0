@@ -280,10 +280,32 @@ void cs_2(){
 	  HAL_Delay(1);
 	  HAL_GPIO_WritePin(blank_GPIO_Port, blank_Pin,GPIO_PIN_RESET);//CS/LE pi low
 }
-void rgb_sett(uint8_t red, uint8_t blue, uint8_t green){
 
-	/* Capture Compare buffer 6 = bit0, 12 = bit1*/
-	uint16_t rgb_buf1[144] = {12, 6, 6, 6, 6, 6, 6, 6,//GREEN
+void InitTIM2(void)
+{
+	TimHandle.Instance = TIM2;
+	TimHandle.Init.Period            = 18;
+	TimHandle.Init.Prescaler         = 0;
+	TimHandle.Init.ClockDivision     = 0;
+	TimHandle.Init.CounterMode       = TIM_COUNTERMODE_UP;
+	if (HAL_TIM_PWM_Init(&TimHandle) != HAL_OK)
+	{
+
+		Error_Handler();
+	}
+
+    sConfig.OCMode       = TIM_OCMODE_PWM1;
+	sConfig.OCPolarity   = TIM_OCPOLARITY_HIGH;
+	sConfig.Pulse        = 0;
+	sConfig.OCFastMode = TIM_OCFAST_ENABLE;
+	if (HAL_TIM_PWM_ConfigChannel(&TimHandle, &sConfig, TIM_CHANNEL_4) != HAL_OK)
+	{
+	  Error_Handler();
+	}
+}
+
+/* Capture Compare buffer 6 = bit0, 12 = bit1*/
+	const uint16_t rgb_buf1[145] = {12, 6, 6, 6, 6, 6, 6, 6,//GREEN//144
 							12, 6, 6, 6, 6, 6, 6, 6,//RED
 							12, 6, 6, 6, 6, 6, 6, 6,//BLUE
 
@@ -309,11 +331,35 @@ void rgb_sett(uint8_t red, uint8_t blue, uint8_t green){
 
 	};
 
-		HAL_TIM_PWM_Start_DMA(&TimHandle, TIM_CHANNEL_4, rgb_buf1, 144);
+void rgb_sett(uint8_t red, uint8_t blue, uint8_t green){
+
+
+
+	//HAL_TIM_PWM_Stop_DMA(&TimHandle, TIM_CHANNEL_4);
+	//InitTIM2();
+	HAL_TIM_PWM_Start_DMA(&TimHandle, TIM_CHANNEL_4, rgb_buf1, 144);
+
+	/*
+	DMA_SetCurrDataCounter(DMA1_Channel4, 144);     // load number of bytes to be transferred
+
+	    // PAP: Clear the timer's counter and set the compare value to 0. This
+	    // sets the output low on start and gives us a full cycle to set up DMA.
+	    TIM_SetCounter(TIM2, 0);
+	    TIM_SetCompare4(TIM2, 0);
+	    TIM_Cmd(TIM2, ENABLE);                         // enable Timer 3
+
+	    // PAP: Start DMA transfer after starting the timer. This prevents the
+	    // DMA/PWM from dropping the first bit.
+	    DMA_Cmd(DMA1_Channel4, ENABLE);             // enable DMA channel 6
+	    while(!DMA_GetFlagStatus( DMA_FLAG_TC4));     // wait until transfer complete
+	    TIM_Cmd(TIM2, DISABLE);                     // disable Timer 3
+	    DMA_Cmd(DMA1_Channel4, DISABLE);             // disable DMA channel 6
+	    DMA_ClearFlag( DMA_FLAG_TC4);                 // clear DMA1 Channel 6 transfer complete flag
+	    */
 	//}
 		//while(HAL_TIM_PWM_Start_DMA(&TimHandle, TIM_CHANNEL_4, rgb_buf1, 24) != HAL_OK)
-	HAL_Delay(1);
-	HAL_TIM_PWM_Stop_DMA(&TimHandle, TIM_CHANNEL_4);
+	//HAL_Delay(1);
+	//HAL_TIM_PWM_Stop_DMA(&TimHandle, TIM_CHANNEL_4);
 }
 
 uint32_t ir_signal;
@@ -328,25 +374,7 @@ int main(void)
 
   BSP_LED_Init(LED3);
 
-  TimHandle.Instance = TIM2;
-  TimHandle.Init.Period            = 18;
-  TimHandle.Init.Prescaler         = 0;
-  TimHandle.Init.ClockDivision     = 0;
-  TimHandle.Init.CounterMode       = TIM_COUNTERMODE_UP;
-  if (HAL_TIM_PWM_Init(&TimHandle) != HAL_OK)
-  {
-
-    Error_Handler();
-  }
-
-  sConfig.OCMode       = TIM_OCMODE_PWM1;
-  sConfig.OCPolarity   = TIM_OCPOLARITY_HIGH;
-  sConfig.Pulse        = 0;
-  sConfig.OCFastMode = TIM_OCFAST_ENABLE;
-  if (HAL_TIM_PWM_ConfigChannel(&TimHandle, &sConfig, TIM_CHANNEL_4) != HAL_OK)
-  {
-    Error_Handler();
-  }
+  InitTIM2();
 
   /* Set TIMx instance */
     TimHandle21.Instance = TIM21;
@@ -435,8 +463,8 @@ int main(void)
 	while (1)
 	{
 		rgb_sett(12,0,0);
-		HAL_Delay(100);
-		  BSP_LED_Toggle(LED_GREEN);
+		HAL_Delay(1000);
+/*		  BSP_LED_Toggle(LED_GREEN);
 
 		if(ir_signal > 0){
 			nixie(ir_signal);
@@ -494,10 +522,12 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 	}
 }
 
-/*void XferCpltCallback(){
+void XferCpltCallback(){
 	BSP_LED_Toggle(LED_GREEN);
 	HAL_TIM_PWM_Stop_DMA(&TimHandle, TIM_CHANNEL_4);
-}*/
+	HAL_TIM_PWM_Stop(&TimHandle, TIM_CHANNEL_4);
+
+}
 
 static void Error_Handler(void)
 {

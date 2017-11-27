@@ -160,7 +160,7 @@ void SysTick_Handler(void)
 
 void TIMx_DMA_IRQHandler(void)
 {
-  HAL_DMA_IRQHandler(TimHandle.hdma[TIM_DMA_ID_CC3]);
+  HAL_DMA_IRQHandler(TimHandle.hdma[TIM_DMA_ID_CC4]);
 }
 /**
   * @brief  This function handles TIM interrupt request.
