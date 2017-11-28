@@ -310,23 +310,23 @@ void InitTIM2(void)
 							12, 6, 6, 6, 6, 6, 6, 6,//BLUE
 
 							12, 6, 6, 6, 6, 6, 6, 6,//GREEN
-							6, 6, 6, 6, 6, 6, 6, 6,//RED
-							6, 6, 6, 6, 6, 6, 6, 6,//BLUE
+							12, 6, 6, 6, 6, 6, 6, 6,//RED
+							12, 6, 6, 6, 6, 6, 6, 6,//BLUE
 
 							12, 6, 6, 6, 6, 6, 6, 6,//GREEN
 							12, 6, 6, 6, 6, 6, 6, 6,//RED
-							6, 6, 6, 6, 6, 6, 6, 6,//BLUE
-
-							6, 6, 6, 6, 6, 6, 6, 6,//GREEN
-							6, 6, 6, 6, 6, 6, 6, 6,//RED
 							12, 6, 6, 6, 6, 6, 6, 6,//BLUE
 
 							12, 6, 6, 6, 6, 6, 6, 6,//GREEN
-							6, 6, 6, 6, 6, 6, 6, 6,//RED
+							12, 6, 6, 6, 6, 6, 6, 6,//RED
 							12, 6, 6, 6, 6, 6, 6, 6,//BLUE
 
-							6, 6, 6, 6, 6, 6, 6, 6,//GREEN
-							6, 6, 6, 6, 6, 6, 6, 6,//RED
+							12, 6, 6, 6, 6, 6, 6, 6,//GREEN
+							12, 6, 6, 6, 6, 6, 6, 6,//RED
+							12, 6, 6, 6, 6, 6, 6, 6,//BLUE
+
+							12, 6, 6, 6, 6, 6, 6, 6,//GREEN
+							12, 6, 6, 6, 6, 6, 6, 6,//RED
 							12, 6, 6, 6, 6, 6, 6, 6,//BLUE
 
 	};
@@ -337,7 +337,7 @@ void rgb_sett(uint8_t red, uint8_t blue, uint8_t green){
 
 	//HAL_TIM_PWM_Stop_DMA(&TimHandle, TIM_CHANNEL_4);
 	//InitTIM2();
-	HAL_TIM_PWM_Start_DMA(&TimHandle, TIM_CHANNEL_4, rgb_buf1, 144);
+	HAL_TIM_PWM_Start_DMA(&TimHandle, TIM_CHANNEL_4, rgb_buf1, 24);
 
 	/*
 	DMA_SetCurrDataCounter(DMA1_Channel4, 144);     // load number of bytes to be transferred
@@ -358,8 +358,8 @@ void rgb_sett(uint8_t red, uint8_t blue, uint8_t green){
 	    */
 	//}
 		//while(HAL_TIM_PWM_Start_DMA(&TimHandle, TIM_CHANNEL_4, rgb_buf1, 24) != HAL_OK)
-	//HAL_Delay(1);
-	//HAL_TIM_PWM_Stop_DMA(&TimHandle, TIM_CHANNEL_4);
+	HAL_Delay(1);
+	HAL_TIM_PWM_Stop_DMA(&TimHandle, TIM_CHANNEL_4);
 }
 
 uint32_t ir_signal;
