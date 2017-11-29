@@ -283,37 +283,37 @@ void cs_2(){
 void rgb_sett(uint8_t red, uint8_t blue, uint8_t green){
 
 	/* Capture Compare buffer 6 = bit0, 12 = bit1*/
-	uint16_t rgb_buf1[144] = {12, 6, 6, 6, 6, 6, 6, 6,//GREEN
-							12, 6, 6, 6, 6, 6, 6, 6,//RED
-							12, 6, 6, 6, 6, 6, 6, 6,//BLUE
+	uint8_t rgb_buf1[145] = {green, 6, 6, 6, 6, 6, 6, 6,//GREEN
+							red, 6, 6, 6, 12, 6, 6, 6,//RED
+							blue, 6, 6, 6, 6, 6, 6, 6,//BLUE
 
-							12, 6, 6, 6, 6, 6, 6, 6,//GREEN
-							6, 6, 6, 6, 6, 6, 6, 6,//RED
-							6, 6, 6, 6, 6, 6, 6, 6,//BLUE
+							green, 6, 6, 6, 6, 6, 6, 6,//GREEN
+							red, 6, 6, 6, 6, 6, 6, 6,//RED
+							blue, 6, 6, 6, 6, 6, 6, 6,//BLUE
 
-							12, 6, 6, 6, 6, 6, 6, 6,//GREEN
-							12, 6, 6, 6, 6, 6, 6, 6,//RED
-							6, 6, 6, 6, 6, 6, 6, 6,//BLUE
+							green, 6, 6, 6, 6, 6, 6, 6,//GREEN
+							red, 6, 6, 6, 6, 6, 6, 6,//RED
+							blue, 6, 6, 6, 6, 6, 6, 6,//BLUE
 
-							6, 6, 6, 6, 6, 6, 6, 6,//GREEN
-							6, 6, 6, 6, 6, 6, 6, 6,//RED
-							12, 6, 6, 6, 6, 6, 6, 6,//BLUE
+							green, 6, 6, 6, 6, 6, 6, 6,//GREEN
+							red, 6, 6, 6, 6, 6, 6, 6,//RED
+							blue, 6, 6, 6, 6, 6, 6, 6,//BLUE
 
-							12, 6, 6, 6, 6, 6, 6, 6,//GREEN
-							6, 6, 6, 6, 6, 6, 6, 6,//RED
-							12, 6, 6, 6, 6, 6, 6, 6,//BLUE
+							green, 6, 6, 6, 6, 6, 6, 6,//GREEN
+							red, 6, 6, 6, 6, 6, 6, 6,//RED
+							blue, 6, 6, 6, 6, 6, 6, 6,//BLUE
 
-							6, 6, 6, 6, 6, 6, 6, 6,//GREEN
-							6, 6, 6, 6, 6, 6, 6, 6,//RED
-							12, 6, 6, 6, 6, 6, 6, 6,//BLUE
+							green, 6, 6, 6, 6, 6, 6, 6,//GREEN
+							red, 6, 6, 6, 6, 6, 6, 6,//RED
+							blue, 6, 6, 6, 6, 6, 6, 6,0//BLUE
 
 	};
 
-		HAL_TIM_PWM_Start_DMA(&TimHandle, TIM_CHANNEL_4, rgb_buf1, 144);
+		HAL_TIM_PWM_Start_DMA(&TimHandle, TIM_CHANNEL_4, rgb_buf1, 145);
 	//}
 		//while(HAL_TIM_PWM_Start_DMA(&TimHandle, TIM_CHANNEL_4, rgb_buf1, 24) != HAL_OK)
-	HAL_Delay(1);
-	HAL_TIM_PWM_Stop_DMA(&TimHandle, TIM_CHANNEL_4);
+//	HAL_Delay(1);
+//	HAL_TIM_PWM_Stop_DMA(&TimHandle, TIM_CHANNEL_4);
 }
 
 uint32_t ir_signal;
@@ -425,23 +425,26 @@ int main(void)
   /* Enable GPIOA clock */
   __HAL_RCC_GPIOA_CLK_ENABLE();
 
-  //HAL_GPIO_WritePin(pwr_en_GPIO_Port, pwr_en_Pin,GPIO_PIN_SET);//DO HV for peropherals
+  HAL_GPIO_WritePin(pwr_en_GPIO_Port, pwr_en_Pin,GPIO_PIN_SET);//DO HV for peropherals
 
   uint8_t pwr = 1;
   uint32_t i = 0;
   uint8_t ii = 0;
   //nixie_bytes[0] = 1;
+  rgb_sett(6,12,6);
 
 	while (1)
 	{
-		rgb_sett(12,0,0);
+		//rgb_sett(12,0,0);
 		HAL_Delay(100);
-		  BSP_LED_Toggle(LED_GREEN);
+		BSP_LED_Toggle(LED_GREEN);
 
-		if(ir_signal > 0){
-			nixie(ir_signal);
-			ir_signal = 0;
-		}else loading(i++);
+		if(i > 115){
+			rgb_sett(6,6,6);
+			i = 0;
+		}else{
+			nixie2(++i,i,i);
+		}
 
 	  HAL_SPI_Transmit(&SpiHandle, (uint8_t*) &nixie_bytes[1], 2, 1000);
 	  cs_1();
