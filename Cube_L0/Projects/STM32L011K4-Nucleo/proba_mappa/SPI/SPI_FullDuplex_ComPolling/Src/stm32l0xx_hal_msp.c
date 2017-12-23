@@ -135,9 +135,7 @@ void HAL_TIM_IC_MspInit(TIM_HandleTypeDef *htim)
 
   /*##-2- Configure the NVIC for TIMx #########################################*/
 
-  HAL_NVIC_SetPriority(TIM21_IRQn, 0, 1);
-
-  /* Enable the TIMx global Interrupt */
+  HAL_NVIC_SetPriority(TIM21_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(TIM21_IRQn);
 }
 /**
@@ -175,7 +173,7 @@ void HAL_TIM_PWM_MspInit(TIM_HandleTypeDef *htim)
 
 
   /* Set the parameters to be configured */
-  hdma_tim.Init.Request  = TIMx_CC3_DMA_REQUEST;
+  hdma_tim.Init.Request  = DMA_REQUEST_8;
   hdma_tim.Init.Direction = DMA_MEMORY_TO_PERIPH;
   hdma_tim.Init.PeriphInc = DMA_PINC_DISABLE;
   hdma_tim.Init.MemInc = DMA_MINC_ENABLE;
@@ -185,7 +183,7 @@ void HAL_TIM_PWM_MspInit(TIM_HandleTypeDef *htim)
   hdma_tim.Init.Priority = DMA_PRIORITY_HIGH;
 
   /* Set hdma_tim instance */
-  hdma_tim.Instance = TIMx_CC3_DMA_INST;
+  hdma_tim.Instance = DMA1_Channel4;
 
   /* Link hdma_tim to hdma[TIM_DMA_ID_CC4] (channel3) */
   __HAL_LINKDMA(htim, hdma[TIM_DMA_ID_CC4], hdma_tim);
@@ -195,8 +193,8 @@ void HAL_TIM_PWM_MspInit(TIM_HandleTypeDef *htim)
 
   /*##-2- Configure the NVIC for DMA #########################################*/
   /* NVIC configuration for DMA transfer complete interrupt */
-  HAL_NVIC_SetPriority(TIMx_DMA_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(TIMx_DMA_IRQn);
+  HAL_NVIC_SetPriority(DMA1_Channel2_3_IRQn, 1, 1);
+  HAL_NVIC_EnableIRQ(DMA1_Channel2_3_IRQn);
 }
 
 

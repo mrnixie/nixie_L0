@@ -309,7 +309,7 @@ void rgb_sett(uint8_t red, uint8_t blue, uint8_t green){
 
 	};
 
-		HAL_TIM_PWM_Start_DMA(&TimHandle, TIM_CHANNEL_4, rgb_buf1, 145);
+		//HAL_TIM_PWM_Start_DMA(&TimHandle, TIM_CHANNEL_4, rgb_buf1, 145);
 	//}
 		//while(HAL_TIM_PWM_Start_DMA(&TimHandle, TIM_CHANNEL_4, rgb_buf1, 24) != HAL_OK)
 //	HAL_Delay(1);
@@ -347,7 +347,8 @@ int main(void)
   {
     Error_Handler();
   }
-
+  HAL_NVIC_SetPriority(TIM2_IRQn, 1, 1);
+  HAL_NVIC_EnableIRQ(TIM2_IRQn);
   /* Set TIMx instance */
     TimHandle21.Instance = TIM21;
     TimHandle21.Init.Period            = 0xFFFF;
@@ -431,7 +432,7 @@ int main(void)
   uint32_t i = 0;
   uint8_t ii = 0;
   //nixie_bytes[0] = 1;
-  rgb_sett(6,12,6);
+  //rgb_sett(12,6,6);
 
 	while (1)
 	{
@@ -446,9 +447,9 @@ int main(void)
 			nixie2(++i,i,i);
 		}
 
-	  HAL_SPI_Transmit(&SpiHandle, (uint8_t*) &nixie_bytes[1], 2, 1000);
-	  cs_1();
-	  HAL_SPI_Transmit(&SpiHandle, (uint8_t*) &nixie_bytes[0], 2, 1000);
+	  //HAL_SPI_Transmit(&SpiHandle, (uint8_t*) &nixie_bytes[1], 2, 1000);
+	  //cs_1();
+	  HAL_SPI_Transmit(&SpiHandle, (uint8_t*) &nixie_bytes[0], 4, 1000);
 	  cs_2();
 /*
 	  if(belepesek == 12){
@@ -476,26 +477,26 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 
 	//BSP_LED_Toggle(LED_GREEN);
 }
-void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
-{
-	tmp_arr[belepesek] = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
-	if(belepesek > 0){
-		if((tmp_arr[belepesek] - tmp_arr[belepesek - 1]) > 30){
-			ir_signal |= (1 << belepesek);
-			BSP_LED_Toggle(LED3);
-
-		}
-	}
-	if(belepesek < 12){
-		belepesek++;
-	}else{
-		belepesek = 0;
-		for(int j = 0; j < 20; j++){
-			tmp_arr[j] = 0;
-			BSP_LED_Toggle(LED_GREEN);
-		}
-	}
-}
+//int HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
+//{
+//	tmp_arr[belepesek] = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
+//	if(belepesek > 0){
+//		if((tmp_arr[belepesek] - tmp_arr[belepesek - 1]) > 30){
+//			ir_signal |= (1 << belepesek);
+//			//BSP_LED_Toggle(LED3);
+//		}
+//	}
+//	if(belepesek < 12){
+//		belepesek++;
+//	}else{
+//		belepesek = 0;
+//		for(int j = 0; j < 20; j++){
+//			tmp_arr[j] = 0;
+//			BSP_LED_Toggle(LED_GREEN);
+//			return ir_signal;
+//		}
+//	}
+//}
 
 /*void XferCpltCallback(){
 	BSP_LED_Toggle(LED_GREEN);

@@ -158,9 +158,9 @@ void SysTick_Handler(void)
   HAL_IncTick();
 }
 
-void TIMx_DMA_IRQHandler(void)
+void DMA1_Channel4_5_6_7_IRQnHandler(void)
 {
-  HAL_DMA_IRQHandler(TimHandle.hdma[TIM_DMA_ID_CC3]);
+ // HAL_DMA_IRQHandler(TimHandle.hdma[TIM_DMA_ID_CC4]);
 }
 /**
   * @brief  This function handles TIM interrupt request.
@@ -175,5 +175,8 @@ void TIM21_IRQHandler(void)
 {
   HAL_TIM_IRQHandler(&TimHandle21);
 }
-
+void hinye
+{
+EXTI4_15_IRQHandler(&TimHandle21);
+}
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
