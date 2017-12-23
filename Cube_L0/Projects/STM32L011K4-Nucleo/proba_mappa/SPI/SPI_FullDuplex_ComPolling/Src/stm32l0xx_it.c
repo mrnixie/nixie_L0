@@ -175,8 +175,8 @@ void TIM21_IRQHandler(void)
 {
   HAL_TIM_IRQHandler(&TimHandle21);
 }
-void hinye
-{
-EXTI4_15_IRQHandler(&TimHandle21);
-}
+//void hinye
+//{
+//EXTI4_15_IRQHandler(&TimHandle21);
+//}
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

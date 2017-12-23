@@ -432,7 +432,7 @@ int main(void)
   uint32_t i = 0;
   uint8_t ii = 0;
   //nixie_bytes[0] = 1;
-  //rgb_sett(12,6,6);
+  rgb_sett(12,6,6);
 
 	while (1)
 	{
