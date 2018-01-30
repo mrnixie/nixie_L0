@@ -78,30 +78,29 @@ void peripheral_init();
 void rgb_sett(uint8_t red, uint8_t blue, uint8_t green){
 	/* Capture Compare buffer 6 = bit0, 12 = bit1*/
 	uint8_t rgb_buf1[145] = {
-							green, 6, 6, 6, 6, 6, 6, 6,//GREEN
-							red, 6, 6, 6, 12, 6, 6, 6,//RED
-							blue, 6, 6, 6, 6, 6, 6, 6,//BLUE
+							green, 12, 12, 12, 12, 12, 12, 12,//GREEN
+							red, 12, 12, 12, 12, 12, 12, 12,//RED
+							blue, 12, 12, 12, 12, 12, 12, 12,//BLUE
 
-							green, 6, 6, 6, 6, 6, 6, 6,//GREEN
-							red, 6, 6, 6, 6, 6, 6, 6,//RED
-							blue, 6, 6, 6, 6, 6, 6, 6,//BLUE
+							green, 12, 12, 12, 12, 12, 12, 12,//GREEN
+							red, 12, 12, 12, 12, 12, 12, 12,//RED
+							blue, 12, 12, 12, 12, 12, 12, 12,//BLUE
 
-							green, 6, 6, 6, 6, 6, 6, 6,//GREEN
-							red, 6, 6, 6, 6, 6, 6, 6,//RED
-							blue, 6, 6, 6, 6, 6, 6, 6,//BLUE
+							green, 12, 12, 12, 12, 12, 12, 12,//GREEN
+							red, 12, 12, 12, 12, 12, 12, 12,//RED
+							blue, 12, 12, 12, 12, 12, 12, 12,//BLUE
 
-							green, 6, 6, 6, 6, 6, 6, 6,//GREEN
-							red, 6, 6, 6, 6, 6, 6, 6,//RED
-							blue, 6, 6, 6, 6, 6, 6, 6,//BLUE
+							green, 12, 12, 12, 12, 12, 12, 12,//GREEN
+							red, 12, 12, 12, 12, 12, 12, 12,//RED
+							blue, 12, 12, 12, 12, 12, 12, 12,//BLUE
 
-							green, 6, 6, 6, 6, 6, 6, 6,//GREEN
-							red, 6, 6, 6, 6, 6, 6, 6,//RED
-							blue, 6, 6, 6, 6, 6, 6, 6,//BLUE
+							green, 12, 12, 12, 12, 12, 12, 12,//GREEN
+							red, 12, 12, 12, 12, 12, 12, 12,//RED
+							blue, 12, 12, 12, 12, 12, 12, 12,//BLUE
 
-							green, 6, 6, 6, 6, 6, 6, 6,//GREEN
-							red, 6, 6, 6, 6, 6, 6, 6,//RED
-							blue, 6, 6, 6, 6, 6, 6, 6,0//BLUE
-
+							green, 12, 12, 12, 12, 12, 12, 12,//GREEN
+							red, 12, 12, 12, 12, 12, 12, 12,//RED
+							blue, 12, 12, 12, 12, 12, 12, 12,0//BLUE
 	};
 
 		HAL_TIM_PWM_Start_DMA(&TimHandle, TIM_CHANNEL_4, rgb_buf1, 145);
@@ -123,7 +122,7 @@ int main(void)
   uint32_t i = 0;
   uint8_t ii = 0;
   //nixie_bytes[0] = 1;
-  rgb_sett(6,6,6);
+  rgb_sett(12,24,12);
 
 	while (1)
 	{
@@ -423,7 +422,7 @@ void peripheral_init(){
 	  BSP_LED_Init(LED3);
 
 	  TimHandle.Instance = TIM2;
-	  TimHandle.Init.Period            = 18;
+	  TimHandle.Init.Period            = 36;
 	  TimHandle.Init.Prescaler         = 0;
 	  TimHandle.Init.ClockDivision     = 0;
 	  TimHandle.Init.CounterMode       = TIM_COUNTERMODE_UP;
@@ -540,6 +539,17 @@ void SystemClock_Config(void)
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   
+  /* Enable Power Control clock */
+  __HAL_RCC_PWR_CLK_ENABLE();
+
+  /* The voltage scaling allows optimizing the power consumption when the device is
+     clocked below the maximum system frequency, to update the voltage scaling value
+     regarding system frequency refer to product datasheet.  */
+  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
+
+  /* Disable Power Control clock */
+  __HAL_RCC_PWR_CLK_DISABLE();
+
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI|RCC_OSCILLATORTYPE_LSE;
   RCC_OscInitStruct.LSEState = RCC_LSE_ON;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
@@ -558,7 +568,7 @@ void SystemClock_Config(void)
      clocks dividers */
   RCC_ClkInitStruct.ClockType = (RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2);
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;;
-  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV2;
+  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;  
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV16;
   if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0)!= HAL_OK)
@@ -566,16 +576,7 @@ void SystemClock_Config(void)
     /* Initialization Error */
     while(1); 
   }
-  /* Enable Power Control clock */
-  __HAL_RCC_PWR_CLK_ENABLE();
-  
-  /* The voltage scaling allows optimizing the power consumption when the device is 
-     clocked below the maximum system frequency, to update the voltage scaling value 
-     regarding system frequency refer to product datasheet.  */
-  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE3);
-  
-  /* Disable Power Control clock */
-  __HAL_RCC_PWR_CLK_DISABLE();
+
   /**Configure the Systick interrupt time
   */
 HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq()/1000);
