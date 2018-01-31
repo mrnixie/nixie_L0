@@ -66,30 +66,54 @@ uint32_t nixie_bytes[] = {
 void rgb_sett(uint8_t red, uint8_t blue, uint8_t green){
 	/* Capture Compare buffer 6 = bit0, 12 = bit1*/
 	uint8_t rgb_buf1[145] = {
-							green, 12, 12, 12, 12, 12, 12, 12,//GREEN
-							red, 12, 12, 12, 12, 12, 12, 12,//RED
-							blue, 12, 12, 12, 12, 12, 12, 12,//BLUE
+							12, 12, 12, 12, 12, 12, 12, 12,//GREEN
+							12, 12, 12, 12, 12, 12, 12, 12,//RED
+							12, 12, 12, 12, 12, 12, 12, 12,//BLUE
 
-							green, 12, 12, 12, 12, 12, 12, 12,//GREEN
-							red, 12, 12, 12, 12, 12, 12, 12,//RED
-							blue, 12, 12, 12, 12, 12, 12, 12,//BLUE
+							12, 12, 12, 12, 12, 12, 12, 12,//GREEN
+							12, 12, 12, 12, 12, 12, 12, 12,//RED
+							12, 12, 12, 12, 12, 12, 12, 12,//BLUE
 
-							green, 12, 12, 12, 12, 12, 12, 12,//GREEN
-							red, 12, 12, 12, 12, 12, 12, 12,//RED
-							blue, 12, 12, 12, 12, 12, 12, 12,//BLUE
+							12, 12, 12, 12, 12, 12, 12, 12,//GREEN
+							12, 12, 12, 12, 12, 12, 12, 12,//RED
+							12, 12, 12, 12, 12, 12, 12, 12,//BLUE
 
-							green, 12, 12, 12, 12, 12, 12, 12,//GREEN
-							red, 12, 12, 12, 12, 12, 12, 12,//RED
-							blue, 12, 12, 12, 12, 12, 12, 12,//BLUE
+							12, 12, 12, 12, 12, 12, 12, 12,//GREEN
+							12, 12, 12, 12, 12, 12, 12, 12,//RED
+							12, 12, 12, 12, 12, 12, 12, 12,//BLUE
 
-							green, 12, 12, 12, 12, 12, 12, 12,//GREEN
-							red, 12, 12, 12, 12, 12, 12, 12,//RED
-							blue, 12, 12, 12, 12, 12, 12, 12,//BLUE
+							12, 12, 12, 12, 12, 12, 12, 12,//GREEN
+							12, 12, 12, 12, 12, 12, 12, 12,//RED
+							12, 12, 12, 12, 12, 12, 12, 12,//BLUE
 
-							green, 12, 12, 12, 12, 12, 12, 12,//GREEN
-							red, 12, 12, 12, 12, 12, 12, 12,//RED
-							blue, 12, 12, 12, 12, 12, 12, 12,0//BLUE
+							12, 12, 12, 12, 12, 12, 12, 12,//GREEN
+							12, 12, 12, 12, 12, 12, 12, 12,//RED
+							12, 12, 12, 12, 12, 12, 12, 12,0//BLUE
 	};
+
+    for(int k = 0; k < 6; k++){
+		for(int i = 0; i < 8; i++){
+				if(green & (1 << i))//{
+					rgb_buf1[7 - i + k*24] = 24;
+	//            }else{
+	//                rgb_buf1[7 - i] = 12;
+	//            }
+		}
+		for(int i = 0; i < 8; i++){
+				if(red & (1 << i))//{
+					rgb_buf1[15 - i + k*24] = 24;
+	//            }else{
+	//                rgb_buf1[15 - i] = 12;
+	//            }
+		}
+		for(int i = 0; i < 8; i++){
+			if(blue & (1 << i))//{
+				rgb_buf1[23 - i + k*24] = 24;
+	//        }else{
+	//            rgb_buf1[23 - i] = 12;
+	//        }
+		}
+    }
 
 	HAL_TIM_PWM_DeInit(&TimHandle);
 	HAL_TIM_PWM_Init(&TimHandle);
@@ -128,34 +152,45 @@ int main(void)
 
 	peripheral_init();
 
-  uint8_t pwr = 1;
-  uint32_t i = 0;
+  uint8_t pwr = 0;
+  uint8_t i = 0;
   uint8_t ii = 0;
   //nixie_bytes[0] = 1;
   rgb_sett(12,24,12);
 
 	while (1)
 	{
-		rgb_sett(24,12,12);
-		HAL_Delay(100);
-		rgb_sett(12,24,12);
-		HAL_Delay(100);
-		rgb_sett(12,12,24);
-		HAL_Delay(100);
-		rgb_sett(24,24,12);
-		HAL_Delay(100);
-		rgb_sett(12,24,24);
-		HAL_Delay(100);
-		rgb_sett(24,12,24);
-		HAL_Delay(100);
-		rgb_sett(24,24,24);
-		HAL_Delay(100);
+		rgb_sett(i,ii,pwr);
+		HAL_Delay(50);
+//		rgb_sett(12,240,12);
+//		HAL_Delay(1000);
+//		rgb_sett(12,12,240);
+//		HAL_Delay(1000);
+//		rgb_sett(22,95,58);
+//		HAL_Delay(1000);
+//		rgb_sett(12,24,24);
+//		HAL_Delay(1000);
+//		rgb_sett(24,12,24);
+//		HAL_Delay(1000);
+//		rgb_sett(24,24,24);
+//		HAL_Delay(1000);
 
 		BSP_LED_Toggle(LED_GREEN);
-		if(i > 115){
+		if(i > 255){
 			i = 0;
 		}else{
 			nixie2(++i,i,i);
+		}
+		if(ii >= 255){
+			ii=0;
+		}else{
+			ii += 2;
+		}
+		if(pwr >= 255){
+			pwr=0;
+		}else{
+			pwr +=3;
+
 		}
 
 //	  HAL_SPI_Transmit(&SpiHandle, (uint8_t*) &nixie_bytes[1], 2, 1000);
