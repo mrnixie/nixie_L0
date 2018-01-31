@@ -38,6 +38,7 @@
 #define __MAIN_H
 
 /* Includes ------------------------------------------------------------------*/
+#include "stm32l0xx_hal.h"
 #include "stm32l0xx_nucleo_32.h"
 #define MASTER_BOARD
 
@@ -80,10 +81,10 @@
 #define TIMx_CC3_DMA_INST                DMA1_Channel4
 
 /* Definition for ADCx's NVIC */
-#define TIMx_DMA_IRQn                    DMA1_Channel2_3_IRQn
-#define TIMx_DMA_IRQHandler              DMA1_Channel2_3_IRQnHandler
-#define TIMx_IRQn                      TIM2_IRQn
-#define TIMx_IRQHandler                TIM2_IRQHandler
+#define TIMx_DMA_IRQn                   DMA1_Channel4_5_6_7_IRQn
+#define TIMx_DMA_IRQHandler             DMA1_Channel4_5_6_7_IRQnHandler
+#define TIMx_IRQn                      	TIM2_IRQn
+#define TIMx_IRQHandler                	TIM2_IRQHandler
 
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/

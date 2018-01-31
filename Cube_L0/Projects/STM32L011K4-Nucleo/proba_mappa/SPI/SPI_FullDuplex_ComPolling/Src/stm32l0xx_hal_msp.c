@@ -35,7 +35,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-
+extern DMA_HandleTypeDef  hdma_tim;
 /**
   * @brief SPI MSP Initialization 
   *        This function configures the hardware resources used in this example: 
@@ -152,17 +152,17 @@ void HAL_TIM_IC_MspInit(TIM_HandleTypeDef *htim)
 void HAL_TIM_PWM_MspInit(TIM_HandleTypeDef *htim)
 {
   GPIO_InitTypeDef   GPIO_InitStruct;
-  static DMA_HandleTypeDef  hdma_tim;
+
 
   /*##-1- Enable peripherals and GPIO Clocks #################################*/
   /* TIMx clock enable */
-  TIMx_CLK_ENABLE();
+  __HAL_RCC_TIM2_CLK_ENABLE();
 
   /* Enable GPIO Channel3/3N Clocks */
-  TIMx_CHANNEL3_GPIO_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /* Enable DMA clock */
-  DMAx_CLK_ENABLE();
+  __HAL_RCC_DMA1_CLK_ENABLE();
 
 
   /* Configure TIM2_Channel3 in output, push-pull & alternate function mode */
@@ -175,28 +175,30 @@ void HAL_TIM_PWM_MspInit(TIM_HandleTypeDef *htim)
 
 
   /* Set the parameters to be configured */
-  hdma_tim.Init.Request  = TIMx_CC3_DMA_REQUEST;
+  hdma_tim.Init.Request  = DMA_REQUEST_8;
   hdma_tim.Init.Direction = DMA_MEMORY_TO_PERIPH;
   hdma_tim.Init.PeriphInc = DMA_PINC_DISABLE;
   hdma_tim.Init.MemInc = DMA_MINC_ENABLE;
   hdma_tim.Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD ;
   hdma_tim.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE ;
   hdma_tim.Init.Mode = DMA_NORMAL;
-  hdma_tim.Init.Priority = DMA_PRIORITY_HIGH;
+  hdma_tim.Init.Priority = DMA_PRIORITY_MEDIUM;
 
   /* Set hdma_tim instance */
-  hdma_tim.Instance = TIMx_CC3_DMA_INST;
+  hdma_tim.Instance = DMA1_Channel4;
 
-  /* Link hdma_tim to hdma[TIM_DMA_ID_CC4] (channel3) */
+  /* Link hdma_tim to hdma[TIM_DMA_ID_CC4] (channel4) */
   __HAL_LINKDMA(htim, hdma[TIM_DMA_ID_CC4], hdma_tim);
 
   /* Initialize TIMx DMA handle */
-  HAL_DMA_Init(htim->hdma[TIM_DMA_ID_CC4]);
+  HAL_DMA_Init(&hdma_tim);
+
 
   /*##-2- Configure the NVIC for DMA #########################################*/
   /* NVIC configuration for DMA transfer complete interrupt */
-  HAL_NVIC_SetPriority(TIMx_DMA_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(TIMx_DMA_IRQn);
+//  HAL_NVIC_EnableIRQ(TIMx_DMA_IRQn);
+//  HAL_NVIC_SetPriority(TIMx_DMA_IRQn, 0, 0);
+
 }
 
 

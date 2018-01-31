@@ -45,26 +45,8 @@ TIM_HandleTypeDef  TimHandle;
 TIM_HandleTypeDef  TimHandle21;
 TIM_OC_InitTypeDef sConfig;
 TIM_IC_InitTypeDef sICConfig;
+DMA_HandleTypeDef  hdma_tim;
 
-uint32_t               uwIC2Value1 = 0;
-uint32_t               uwIC2Value2 = 0;
-uint32_t               uwDiffCapture = 0;
-
-/* Capture index */
-uint16_t               uhCaptureIndex = 0;
-
-/* Frequency Value */
-uint32_t               uwFrequency = 0;
-
-
-uint32_t nixie_bytes[] = {
-		0,//0b00010001000100010001000100010010,
-		0,//0b00010001000100010001000100010010,
-};
-
-/* Buffer used for reception */
-
-/* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void Error_Handler(void);
 
@@ -74,6 +56,12 @@ void nixie2(uint8_t hour, uint8_t min, uint8_t sec);
 void cs_1();
 void cs_2();
 void peripheral_init();
+void dma_transfer_complete_handler();
+
+uint32_t nixie_bytes[] = {
+		0,//0b00010001000100010001000100010010,
+		0,//0b00010001000100010001000100010010,
+};
 
 void rgb_sett(uint8_t red, uint8_t blue, uint8_t green){
 	/* Capture Compare buffer 6 = bit0, 12 = bit1*/
@@ -103,11 +91,33 @@ void rgb_sett(uint8_t red, uint8_t blue, uint8_t green){
 							blue, 12, 12, 12, 12, 12, 12, 12,0//BLUE
 	};
 
+	HAL_TIM_PWM_DeInit(&TimHandle);
+	HAL_TIM_PWM_Init(&TimHandle);
+	HAL_DMA_DeInit(&hdma_tim);
+	HAL_DMA_Init(&hdma_tim);
+
 		HAL_TIM_PWM_Start_DMA(&TimHandle, TIM_CHANNEL_4, rgb_buf1, 145);
-	//}
+
+//	     /* Set the DMA Period elapsed callback */
+//		hdma_tim.XferCpltCallback = dma_transfer_complete_handler;
+//
+//	      /* Set the DMA error callback */
+//	      //hdma_tim.XferErrorCallback = TIM_DMAError ;
+//
+//	      /* Enable the DMA Stream */
+//	      HAL_DMA_Start_IT(&hdma_tim, rgb_buf1, (uint32_t)&TIM2->CCR4, 145);
+//
+//		  __HAL_DMA_ENABLE(hdma_tim);	  /* Enable the Peripheral */
+//
+//	      __HAL_TIM_ENABLE_DMA(TimHandle, TIM_DMA_ID_CC4);	      /* Enable the TIM Capture/Compare 4 DMA request */
+//
+//	  /* Enable the Capture compare channel */
+//	  //TIM_CCxChannelCmd(TimHandle->Instance, TIM_CHANNEL_4, TIM_CCx_ENABLE);
+//
+//	  	__HAL_TIM_ENABLE(&TimHandle);
 		//while(HAL_TIM_PWM_Start_DMA(&TimHandle, TIM_CHANNEL_4, rgb_buf1, 24) != HAL_OK)
 //	HAL_Delay(1);
-//	HAL_TIM_PWM_Stop_DMA(&TimHandle, TIM_CHANNEL_4);
+	//HAL_TIM_PWM_Stop_DMA(&TimHandle, TIM_CHANNEL_4);
 }
 
 uint32_t ir_signal;
@@ -126,12 +136,23 @@ int main(void)
 
 	while (1)
 	{
-		//rgb_sett(12,0,0);
+		rgb_sett(24,12,12);
 		HAL_Delay(100);
-		BSP_LED_Toggle(LED_GREEN);
-		//rgb_sett(6,6,6);
-		if(i > 115){
+		rgb_sett(12,24,12);
+		HAL_Delay(100);
+		rgb_sett(12,12,24);
+		HAL_Delay(100);
+		rgb_sett(24,24,12);
+		HAL_Delay(100);
+		rgb_sett(12,24,24);
+		HAL_Delay(100);
+		rgb_sett(24,12,24);
+		HAL_Delay(100);
+		rgb_sett(24,24,24);
+		HAL_Delay(100);
 
+		BSP_LED_Toggle(LED_GREEN);
+		if(i > 115){
 			i = 0;
 		}else{
 			nixie2(++i,i,i);
@@ -163,10 +184,21 @@ int main(void)
 //		}
   }
 }
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 
-	//BSP_LED_Toggle(LED_GREEN);
-}
+//void dma_transfer_complete_handler(){
+//	BSP_LED_Toggle(LED_GREEN);
+//}
+///*void XferCpltCallback(){
+//	BSP_LED_Toggle(LED_GREEN);
+//	HAL_TIM_PWM_Stop_DMA(&TimHandle, TIM_CHANNEL_4);
+//}*/
+//void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim){
+//
+//	BSP_LED_Toggle(LED_GREEN);
+//}
+//HAL_TIM_ErrorCallback(TIM_HandleTypeDef *htim){
+//	BSP_LED_Toggle(LED_GREEN);
+//}
 void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 {
 	tmp_arr[belepesek] = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
@@ -188,20 +220,6 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 	}
 }
 
-/*void XferCpltCallback(){
-	BSP_LED_Toggle(LED_GREEN);
-	HAL_TIM_PWM_Stop_DMA(&TimHandle, TIM_CHANNEL_4);
-}*/
-
-static void Error_Handler(void)
-{
-  while(1)
-  {
-    /* Toggle LED3 for error */
-    BSP_LED_Toggle(LED3);
-    HAL_Delay(1000);
-  }
-}
 void loading(uint8_t loading_var){
 	nixie_bytes[0] = 0;
 	nixie_bytes[1] = 0;
@@ -414,111 +432,88 @@ void cs_2(){
 	  HAL_GPIO_WritePin(blank_GPIO_Port, blank_Pin,GPIO_PIN_RESET);//CS/LE pi low
 }
 void peripheral_init(){
-	  GPIO_InitTypeDef  GPIO_InitStruct;
 
-	  HAL_Init();
-	  SystemClock_Config();
+	GPIO_InitTypeDef  GPIO_InitStruct;
 
-	  BSP_LED_Init(LED3);
+	HAL_Init();
+	SystemClock_Config();
 
-	  TimHandle.Instance = TIM2;
-	  TimHandle.Init.Period            = 36;
-	  TimHandle.Init.Prescaler         = 0;
-	  TimHandle.Init.ClockDivision     = 0;
-	  TimHandle.Init.CounterMode       = TIM_COUNTERMODE_UP;
-	  if (HAL_TIM_PWM_Init(&TimHandle) != HAL_OK)
-	  {
+	BSP_LED_Init(LED3);
 
-	    Error_Handler();
-	  }
+	TimHandle.Instance = TIM2;
+	TimHandle.Init.Period            = 36;
+	TimHandle.Init.Prescaler         = 0;
+	TimHandle.Init.ClockDivision     = 0;
+	TimHandle.Init.CounterMode       = TIM_COUNTERMODE_UP;
+	HAL_TIM_PWM_Init(&TimHandle);
 
-	  sConfig.OCMode       = TIM_OCMODE_PWM1;
-	  sConfig.OCPolarity   = TIM_OCPOLARITY_HIGH;
-	  sConfig.Pulse        = 0;
-	  sConfig.OCFastMode = TIM_OCFAST_ENABLE;
-	  if (HAL_TIM_PWM_ConfigChannel(&TimHandle, &sConfig, TIM_CHANNEL_4) != HAL_OK)
-	  {
-	    Error_Handler();
-	  }
 
-	  /* Set TIMx instance */
-	    TimHandle21.Instance = TIM21;
-	    TimHandle21.Init.Period            = 0xFFFF;
-	    TimHandle21.Init.Prescaler         = 100;
-	    TimHandle21.Init.ClockDivision     = 256;
-	    TimHandle21.Init.CounterMode       = TIM_COUNTERMODE_UP;
-	    if(HAL_TIM_IC_Init(&TimHandle21) != HAL_OK)
-	    {
-	      /* Initialization Error */
-	      Error_Handler();
-	    }
+	sConfig.OCMode       = TIM_OCMODE_PWM1;
+	sConfig.OCPolarity   = TIM_OCPOLARITY_HIGH;
+	sConfig.Pulse        = 0;
+	sConfig.OCFastMode = TIM_OCFAST_ENABLE;
+	HAL_TIM_PWM_ConfigChannel(&TimHandle, &sConfig, TIM_CHANNEL_4);
 
-	    /* Configure the Input Capture of channel 1 */
-	    sICConfig.ICPolarity  = TIM_INPUTCHANNELPOLARITY_RISING;
-	    sICConfig.ICSelection = TIM_ICSELECTION_DIRECTTI;
-	    sICConfig.ICPrescaler = TIM_ICPSC_DIV1;
-	    sICConfig.ICFilter    = 0;
-	    if(HAL_TIM_IC_ConfigChannel(&TimHandle21, &sICConfig, TIM_CHANNEL_1) != HAL_OK)
-	    {
-	      /* Configuration Error */
-	      Error_Handler();
-	    }
+	/* Set TIMx instance */
+	TimHandle21.Instance = TIM21;
+	TimHandle21.Init.Period            = 0xFFFF;
+	TimHandle21.Init.Prescaler         = 100;
+	TimHandle21.Init.ClockDivision     = 256;
+	TimHandle21.Init.CounterMode       = TIM_COUNTERMODE_UP;
+	HAL_TIM_IC_Init(&TimHandle21);
 
-	    /*##-3- Start the Input Capture in interrupt mode ##########################*/
-	    if(HAL_TIM_IC_Start_IT(&TimHandle21, TIM_CHANNEL_1) != HAL_OK)
-	    {
-	      /* Starting Error */
-	      Error_Handler();
-	    }
 
-	  /*##-1- Configure the SPI peripheral #######################################*/
-	  /* Set the SPI parameters */
-	  SpiHandle.Instance               = SPIx;
-	  SpiHandle.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_32;
-	  SpiHandle.Init.Direction         = SPI_DIRECTION_2LINES;
-	  SpiHandle.Init.CLKPhase          = SPI_PHASE_2EDGE;
-	  SpiHandle.Init.CLKPolarity       = SPI_POLARITY_LOW;
-	  SpiHandle.Init.DataSize          = SPI_DATASIZE_16BIT;
-	  SpiHandle.Init.FirstBit          = SPI_FIRSTBIT_LSB;
-	  SpiHandle.Init.TIMode            = SPI_TIMODE_DISABLE;
-	  SpiHandle.Init.CRCCalculation    = SPI_CRCCALCULATION_DISABLE;
-	  SpiHandle.Init.CRCPolynomial     = 7;
-	  SpiHandle.Init.NSS               = SPI_NSS_SOFT;
+	/* Configure the Input Capture of channel 1 */
+	sICConfig.ICPolarity  = TIM_INPUTCHANNELPOLARITY_RISING;
+	sICConfig.ICSelection = TIM_ICSELECTION_DIRECTTI;
+	sICConfig.ICPrescaler = TIM_ICPSC_DIV1;
+	sICConfig.ICFilter    = 0;
+	HAL_TIM_IC_ConfigChannel(&TimHandle21, &sICConfig, TIM_CHANNEL_1);
 
-	  SpiHandle.Init.Mode = SPI_MODE_MASTER;
-	  if(HAL_SPI_Init(&SpiHandle) != HAL_OK)
-	  {
-	    /* Initialization Error */
-	    Error_Handler();
-	  }
+	HAL_TIM_IC_Start_IT(&TimHandle21, TIM_CHANNEL_1);
 
-	  /* Configure PA.12 (Arduino D2) button */
-	  GPIO_InitStruct.Pin = user_btn_Pin;
-	  GPIO_InitStruct.Pull = GPIO_PULLUP;
-	  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-	  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-	   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+	/*##-1- Configure the SPI peripheral #######################################*/
+	SpiHandle.Instance               = SPIx;
+	SpiHandle.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_64;
+	SpiHandle.Init.Direction         = SPI_DIRECTION_2LINES;
+	SpiHandle.Init.CLKPhase          = SPI_PHASE_2EDGE;
+	SpiHandle.Init.CLKPolarity       = SPI_POLARITY_LOW;
+	SpiHandle.Init.DataSize          = SPI_DATASIZE_16BIT;
+	SpiHandle.Init.FirstBit          = SPI_FIRSTBIT_LSB;
+	SpiHandle.Init.TIMode            = SPI_TIMODE_DISABLE;
+	SpiHandle.Init.CRCCalculation    = SPI_CRCCALCULATION_DISABLE;
+	SpiHandle.Init.CRCPolynomial     = 7;
+	SpiHandle.Init.NSS               = SPI_NSS_SOFT;
 
-	  GPIO_InitStruct.Pin = pwr_en_Pin;
-	  GPIO_InitStruct.Pull = GPIO_NOPULL;
-	  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-	  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+	SpiHandle.Init.Mode = SPI_MODE_MASTER;
+	HAL_SPI_Init(&SpiHandle);
 
-	  GPIO_InitStruct.Pin = CS_Pin;
-	  GPIO_InitStruct.Pull = GPIO_NOPULL;
-	  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-	  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+	/* Configure PA.12 (Arduino D2) button */
+	GPIO_InitStruct.Pin = user_btn_Pin;
+	GPIO_InitStruct.Pull = GPIO_PULLUP;
+	GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-	  //BLANK
-	  GPIO_InitStruct.Pin = blank_Pin;
-	  GPIO_InitStruct.Pull = GPIO_NOPULL;
-	  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-	  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+	GPIO_InitStruct.Pin = pwr_en_Pin;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-	  /* Enable GPIOA clock */
-	  __HAL_RCC_GPIOA_CLK_ENABLE();
+	GPIO_InitStruct.Pin = CS_Pin;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-	  HAL_GPIO_WritePin(pwr_en_GPIO_Port, pwr_en_Pin,GPIO_PIN_SET);//DO HV for peropherals
+	//BLANK
+	GPIO_InitStruct.Pin = blank_Pin;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+	__HAL_RCC_GPIOA_CLK_ENABLE();
+
+	HAL_GPIO_WritePin(pwr_en_GPIO_Port, pwr_en_Pin,GPIO_PIN_SET);//DO HV for peropherals
 }
 
 /**
@@ -527,11 +522,11 @@ void peripheral_init(){
   *            System Clock source            = HSI
   *            SYSCLK(Hz)                     = 32000000
   *            HCLK(Hz)                       = 32000000
-  *            AHB Prescaler                  = 2
+  *            AHB Prescaler                  = 1
   *            APB1 Prescaler                 = 1
   *            APB2 Prescaler                 = 16
   *            Flash Latency(WS)              = 0
-  *            Main regulator output voltage  = Scale3 mode
+  *            Main regulator output voltage  = Scale1 mode
   * @retval None
   */
 void SystemClock_Config(void)

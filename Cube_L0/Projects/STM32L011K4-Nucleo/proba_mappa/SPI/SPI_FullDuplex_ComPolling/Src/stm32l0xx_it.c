@@ -51,8 +51,10 @@
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-extern    TIM_HandleTypeDef    TimHandle;
-extern    TIM_HandleTypeDef    TimHandle21;
+extern    TIM_HandleTypeDef    	TimHandle;
+extern    TIM_HandleTypeDef    	TimHandle21;
+extern    DMA_HandleTypeDef  	hdma_tim;
+
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
 
@@ -79,6 +81,8 @@ void HardFault_Handler(void)
   /* Go to infinite loop when Hard Fault exception occurs */
   while (1)
   {
+		HAL_Delay(100);
+		BSP_LED_Toggle(LED_GREEN);
   }
 }
 
@@ -158,9 +162,9 @@ void SysTick_Handler(void)
   HAL_IncTick();
 }
 
-void TIMx_DMA_IRQHandler(void)
+void DMA1_Channel4_5_6_7_IRQnHandler(void)
 {
-  HAL_DMA_IRQHandler(TimHandle.hdma[TIM_DMA_ID_CC3]);
+  HAL_DMA_IRQHandler(&hdma_tim);
 }
 /**
   * @brief  This function handles TIM interrupt request.
