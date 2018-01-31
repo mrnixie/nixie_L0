@@ -48,7 +48,6 @@ TIM_IC_InitTypeDef sICConfig;
 DMA_HandleTypeDef  hdma_tim;
 
 void SystemClock_Config(void);
-static void Error_Handler(void);
 
 void loading(uint8_t loading_var);
 void nixie(uint32_t num);
@@ -56,7 +55,8 @@ void nixie2(uint8_t hour, uint8_t min, uint8_t sec);
 void cs_1();
 void cs_2();
 void peripheral_init();
-void dma_transfer_complete_handler();
+void rgb_demo();
+uint16_t time_ms=0;
 
 uint32_t nixie_bytes[] = {
 		0,//0b00010001000100010001000100010010,
@@ -120,7 +120,7 @@ void rgb_sett(uint8_t red, uint8_t blue, uint8_t green){
 	HAL_DMA_DeInit(&hdma_tim);
 	HAL_DMA_Init(&hdma_tim);
 
-		HAL_TIM_PWM_Start_DMA(&TimHandle, TIM_CHANNEL_4, rgb_buf1, 145);
+	HAL_TIM_PWM_Start_DMA(&TimHandle, TIM_CHANNEL_4, rgb_buf1, 145);
 
 //	     /* Set the DMA Period elapsed callback */
 //		hdma_tim.XferCpltCallback = dma_transfer_complete_handler;
@@ -139,64 +139,40 @@ void rgb_sett(uint8_t red, uint8_t blue, uint8_t green){
 //	  //TIM_CCxChannelCmd(TimHandle->Instance, TIM_CHANNEL_4, TIM_CCx_ENABLE);
 //
 //	  	__HAL_TIM_ENABLE(&TimHandle);
-		//while(HAL_TIM_PWM_Start_DMA(&TimHandle, TIM_CHANNEL_4, rgb_buf1, 24) != HAL_OK)
+//		//while(HAL_TIM_PWM_Start_DMA(&TimHandle, TIM_CHANNEL_4, rgb_buf1, 24) != HAL_OK)
 //	HAL_Delay(1);
-	//HAL_TIM_PWM_Stop_DMA(&TimHandle, TIM_CHANNEL_4);
+//	//HAL_TIM_PWM_Stop_DMA(&TimHandle, TIM_CHANNEL_4);
 }
 
 uint32_t ir_signal;
 uint8_t belepesek = 0;
-uint32_t tmp_arr[20];
+uint8_t pwr = 0;
+uint8_t i = 0;
+
 int main(void)
 {
-
 	peripheral_init();
+	uint8_t i = 0;
+	uint8_t ii = 0;
+	uint8_t tmp = 0;
 
-  uint8_t pwr = 0;
-  uint8_t i = 0;
-  uint8_t ii = 0;
-  //nixie_bytes[0] = 1;
-  rgb_sett(12,24,12);
+	//nixie_bytes[0] = 1;
+	//rgb_sett(12,24,12);
 
 	while (1)
 	{
-		rgb_sett(i,ii,pwr);
-		HAL_Delay(50);
-//		rgb_sett(12,240,12);
-//		HAL_Delay(1000);
-//		rgb_sett(12,12,240);
-//		HAL_Delay(1000);
-//		rgb_sett(22,95,58);
-//		HAL_Delay(1000);
-//		rgb_sett(12,24,24);
-//		HAL_Delay(1000);
-//		rgb_sett(24,12,24);
-//		HAL_Delay(1000);
-//		rgb_sett(24,24,24);
-//		HAL_Delay(1000);
+		rgb_demo();
+		HAL_Delay(5);
 
 		BSP_LED_Toggle(LED_GREEN);
-		if(i > 255){
-			i = 0;
-		}else{
-			nixie2(++i,i,i);
-		}
-		if(ii >= 255){
-			ii=0;
-		}else{
-			ii += 2;
-		}
-		if(pwr >= 255){
-			pwr=0;
-		}else{
-			pwr +=3;
 
-		}
-
-//	  HAL_SPI_Transmit(&SpiHandle, (uint8_t*) &nixie_bytes[1], 2, 1000);
-//	  cs_1();
-//	  HAL_SPI_Transmit(&SpiHandle, (uint8_t*) &nixie_bytes[0], 2, 1000);
-//	  cs_2();
+//		if(ii){
+//			nixie2(17,38,++tmp);
+//			HAL_SPI_Transmit(&SpiHandle, (uint8_t*) &nixie_bytes[1], 2, 1000);
+//			cs_1();
+//			HAL_SPI_Transmit(&SpiHandle, (uint8_t*) &nixie_bytes[0], 2, 1000);
+//			cs_2();
+//		}
 //
 //	  if(belepesek == 12){
 //		  belepesek = 0;
@@ -206,8 +182,17 @@ int main(void)
 //			}
 //	  }
 //
-//	  if((HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_12) == GPIO_PIN_RESET))
+//		if((HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_12) == GPIO_PIN_RESET))
 //		{
+//			HAL_Delay(250);
+			//ii++;
+			//HAL_GPIO_TogglePin(GPIO_PIN_3, pwr_en_Pin);//DO HV for peropherals
+			nixie2(17,38,04);
+			HAL_SPI_Transmit(&SpiHandle, (uint8_t*) &nixie_bytes[1], 2, 1000);
+			cs_1();
+			HAL_SPI_Transmit(&SpiHandle, (uint8_t*) &nixie_bytes[0], 2, 1000);
+			cs_2();
+//		}
 //		  ir_signal = 0;
 //		  belepesek = 0;
 //		  i++;
@@ -236,6 +221,7 @@ int main(void)
 //}
 void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 {
+	uint32_t tmp_arr[20];
 	tmp_arr[belepesek] = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
 	if(belepesek > 0){
 		if((tmp_arr[belepesek] - tmp_arr[belepesek - 1]) > 30){
@@ -466,6 +452,60 @@ void cs_2(){
 	  HAL_Delay(1);
 	  HAL_GPIO_WritePin(blank_GPIO_Port, blank_Pin,GPIO_PIN_RESET);//CS/LE pi low
 }
+void rgb_demo(){
+	switch(pwr){
+		case 0:
+			rgb_sett(i++,0,0);
+			if(i >= 255){
+				i = 0;
+				pwr = 1;
+			}
+		break;
+		case 1:
+			rgb_sett(0,i++,0);
+		if(i >= 255){
+			i = 0;
+			pwr = 2;
+		}
+		break;
+		case 2:
+			rgb_sett(0,0,i++);
+		if(i >= 255){
+			i = 0;
+			pwr = 3;
+		}
+		break;
+		case 3:
+			rgb_sett(++i,i,0);
+		if(i >= 255){
+			i = 0;
+			pwr = 4;
+		}
+		break;
+		case 4:
+			rgb_sett(++i,0,i);
+		if(i >= 255){
+			i = 0;
+			pwr = 5;
+		}
+		break;
+		case 5:
+			rgb_sett(0,++i,i);
+		if(i >= 255){
+			i = 0;
+			pwr = 6;
+		}
+		break;
+		case 6:
+			rgb_sett(++i,i,i);
+		if(i >= 255){
+			i = 0;
+			pwr = 0;
+		}
+		break;
+		default:  break;
+	}
+}
 void peripheral_init(){
 
 	GPIO_InitTypeDef  GPIO_InitStruct;
@@ -548,7 +588,7 @@ void peripheral_init(){
 
 	__HAL_RCC_GPIOA_CLK_ENABLE();
 
-	HAL_GPIO_WritePin(pwr_en_GPIO_Port, pwr_en_Pin,GPIO_PIN_SET);//DO HV for peropherals
+	HAL_GPIO_WritePin(pwr_en_Pin, pwr_en_Pin,GPIO_PIN_SET);//DO HV for peropherals
 }
 
 /**
