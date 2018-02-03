@@ -76,6 +76,9 @@ GPIO_InitTypeDef  GPIO_InitStruct;
     GPIO_InitStruct.Pin = SPIx_MOSI_PIN;
     GPIO_InitStruct.Alternate = SPIx_MOSI_AF;
     HAL_GPIO_Init(SPIx_MOSI_GPIO_PORT, &GPIO_InitStruct);
+
+    HAL_NVIC_SetPriority(SPIx_IRQn, 1, 0);
+    HAL_NVIC_EnableIRQ(SPIx_IRQn);
   }
 }
 

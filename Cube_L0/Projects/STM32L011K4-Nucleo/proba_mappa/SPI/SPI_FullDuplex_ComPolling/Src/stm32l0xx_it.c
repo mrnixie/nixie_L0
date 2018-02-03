@@ -51,9 +51,10 @@
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-extern    TIM_HandleTypeDef    	TimHandle;
-extern    TIM_HandleTypeDef    	TimHandle21;
-extern    DMA_HandleTypeDef  	hdma_tim;
+extern  TIM_HandleTypeDef   TimHandle;
+extern  TIM_HandleTypeDef   TimHandle21;
+extern  DMA_HandleTypeDef  	hdma_tim;
+extern 	SPI_HandleTypeDef 	SpiHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
@@ -162,15 +163,14 @@ void SysTick_Handler(void)
   HAL_IncTick();
 }
 
-void DMA1_Channel4_5_6_7_IRQnHandler(void)
+//void DMA1_Channel4_5_6_7_IRQnHandler(void)
+//{
+//  HAL_DMA_IRQHandler(&hdma_tim);
+//}
+void SPIx_IRQHandler(void)
 {
-  HAL_DMA_IRQHandler(&hdma_tim);
+  HAL_SPI_IRQHandler(&SpiHandle);
 }
-/**
-  * @brief  This function handles TIM interrupt request.
-  * @param  None
-  * @retval None
-  */
 void TIM2_IRQHandler(void)
 {
   HAL_TIM_IRQHandler(&TimHandle);

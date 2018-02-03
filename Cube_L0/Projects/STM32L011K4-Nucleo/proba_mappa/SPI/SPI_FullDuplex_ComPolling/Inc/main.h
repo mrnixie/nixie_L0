@@ -111,6 +111,9 @@
 #define SPIx_MOSI_GPIO_PORT              GPIOA
 #define SPIx_MOSI_AF                     GPIO_AF0_SPI1
 
+#define SPIx_IRQn                        SPI1_IRQn
+#define SPIx_IRQHandler                  SPI1_IRQHandler
+
 /* Size of buffer */
 #define BUFFERSIZE                       (COUNTOF(aTxBuffer) - 1)
 
